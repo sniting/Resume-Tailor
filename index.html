@@ -233,6 +233,15 @@
             background: #138496;
         }
         
+        .btn-debug {
+            background: #6f42c1;
+            color: white;
+        }
+        
+        .btn-debug:hover {
+            background: #5a2d9c;
+        }
+        
         .action-buttons {
             display: flex;
             gap: 15px;
@@ -413,6 +422,16 @@
             align-items: center;
         }
         
+        .status-info {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #1565c0;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -449,7 +468,13 @@
         </div>
         
         <div class="debug-banner">
-            ⚠️ DEBUG MODE ENABLED - Manual entry option available for better control
+            ⚠️ DEBUG MODE ENABLED - Enhanced error detection active
+        </div>
+        
+        <div class="status-info">
+            <strong>System Status:</strong> 
+            <span id="systemStatus">Checking connection...</span> | 
+            <strong>Location:</strong> <span id="pageLocation"></span>
         </div>
         
         <div id="alert" class="alert"></div>
@@ -573,6 +598,9 @@
             <button class="btn btn-test" onclick="testWebhook()">
                 <span>🔧</span> Test Connection
             </button>
+            <button class="btn btn-debug" onclick="debugWorkflow()">
+                <span>🐛</span> Debug Workflow
+            </button>
             <button class="btn btn-secondary" onclick="clearForm()">
                 <span>🗑️</span> Clear Form
             </button>
@@ -602,6 +630,12 @@
         
         // Load user info and manual data on page load
         window.addEventListener('DOMContentLoaded', function() {
+            // Display page location
+            document.getElementById('pageLocation').textContent = window.location.hostname;
+            
+            // Check system status
+            checkSystemStatus();
+            
             loadUserInfo();
             loadManualData();
             // Add default entries if none exist
@@ -615,7 +649,32 @@
                 addProject();
             }
             log('Page loaded - Debug mode enabled');
+            log('Running from: ' + window.location.origin);
         });
+        
+        // Check system status
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                if (response.ok || response.status === 404) {
+                    document.getElementById('systemStatus').textContent = '✅ Webhook reachable';
+                    document.getElementById('systemStatus').style.color = '#2e7d32';
+                } else {
+                    document.getElementById('systemStatus').textContent = '⚠️ Webhook may have issues';
+                    document.getElementById('systemStatus').style.color = '#f57c00';
+                }
+            } catch (error) {
+                document.getElementById('systemStatus').textContent = '❌ Cannot reach webhook';
+                document.getElementById('systemStatus').style.color = '#d32f2f';
+                log('System check error: ' + error.message, 'error');
+            }
+        }
         
         // Debug logging
         function log(message, type = 'info') {
@@ -637,6 +696,85 @@
             
             // Auto scroll
             debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+        
+        // Debug workflow function
+        async function debugWorkflow() {
+            log('Starting workflow debug...');
+            showAlert('Running comprehensive workflow diagnostics...', 'info');
+            
+            try {
+                // Test 1: Basic connectivity
+                log('Test 1: Basic connectivity check');
+                const basicTest = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/html,application/json,*/*',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({
+                        action: 'debug',
+                        test: 'basic'
+                    })
+                });
+                
+                log(`Basic test status: ${basicTest.status}`);
+                const basicHeaders = {};
+                basicTest.headers.forEach((value, key) => {
+                    basicHeaders[key] = value;
+                });
+                log(`Response headers: ${JSON.stringify(basicHeaders)}`);
+                
+                // Test 2: Minimal data test
+                log('Test 2: Minimal data test');
+                const minimalData = {
+                    action: 'test',
+                    data: {
+                        resumeContent: 'Test resume',
+                        jobDescription: 'Test job',
+                        name: 'Test',
+                        location: 'Test',
+                        phone: '123',
+                        email: 'test@test.com',
+                        linkedin: 'test'
+                    }
+                };
+                
+                const minimalTest = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/html,application/json,*/*'
+                    },
+                    body: JSON.stringify(minimalData)
+                });
+                
+                const minimalResponse = await minimalTest.text();
+                log(`Minimal test response length: ${minimalResponse.length}`);
+                log(`Response type: ${minimalTest.headers.get('content-type')}`);
+                
+                if (minimalResponse.length === 0) {
+                    log('ERROR: Workflow returns empty response!', 'error');
+                    log('Possible causes:', 'error');
+                    log('1. Workflow execution failed', 'error');
+                    log('2. Response node not reached', 'error');
+                    log('3. HTML generation failed', 'error');
+                    
+                    showAlert('Workflow is returning empty responses. Check n8n workflow logs.', 'error');
+                } else if (minimalResponse.includes('<!DOCTYPE html>')) {
+                    log('SUCCESS: Workflow returns HTML correctly', 'success');
+                    showAlert('Workflow debug successful! Everything appears to be working.', 'success');
+                } else {
+                    log('WARNING: Response is not HTML', 'warning');
+                    log(`Response preview: ${minimalResponse.substring(0, 200)}`, 'warning');
+                    showAlert('Workflow returns data but not in expected HTML format.', 'error');
+                }
+                
+            } catch (error) {
+                log(`Debug error: ${error.message}`, 'error');
+                showAlert('Debug failed: ' + error.message, 'error');
+            }
         }
         
         // Switch tabs
@@ -965,25 +1103,35 @@
                     }
                 };
                 
-                log(`Sending test request with data: ${JSON.stringify(testData).substring(0, 200)}...`);
+                log(`Sending test request from: ${window.location.origin}`);
+                log(`Request data: ${JSON.stringify(testData).substring(0, 200)}...`);
                 
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/html,application/json,*/*',
+                        'Origin': window.location.origin
                     },
                     body: JSON.stringify(testData)
                 });
                 
                 log(`Response status: ${response.status}`);
-                log(`Response headers: ${JSON.stringify(Object.fromEntries(response.headers))}`);
+                const responseHeaders = {};
+                response.headers.forEach((value, key) => {
+                    responseHeaders[key] = value;
+                });
+                log(`Response headers: ${JSON.stringify(responseHeaders)}`);
                 
                 const responseText = await response.text();
                 log(`Response body length: ${responseText.length}`);
                 log(`Response preview: ${responseText.substring(0, 500)}...`);
                 
                 if (response.ok) {
-                    if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html')) {
+                    if (responseText.length === 0) {
+                        showAlert('Connection successful but response is empty. Check workflow execution.', 'error');
+                        log('ERROR: Empty response from webhook', 'error');
+                    } else if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html')) {
                         showAlert('Connection successful! Webhook is working and returning HTML.', 'success');
                         log('Webhook test successful - HTML response received', 'success');
                     } else {
@@ -1113,6 +1261,7 @@
             log(`Job description length: ${jobDescription.length}`);
             log(`User info: ${JSON.stringify(userInfo)}`);
             log(`Entry method: ${isManualEntry ? 'Manual' : 'Upload/Paste'}`);
+            log(`Request origin: ${window.location.origin}`);
             
             // Validate inputs
             if (!resumeContent.trim()) {
@@ -1146,11 +1295,15 @@
                 log('Sending request to webhook...');
                 const startTime = Date.now();
                 
+                // Enhanced fetch with all necessary headers
                 const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'text/html,application/json,*/*',
+                        'Origin': window.location.origin
                     },
+                    mode: 'cors',
                     body: JSON.stringify(requestBody)
                 });
                 
@@ -1158,6 +1311,13 @@
                 log(`Response received in ${responseTime}ms`);
                 log(`Response status: ${response.status}`);
                 log(`Response status text: ${response.statusText}`);
+                
+                // Log all response headers
+                const responseHeaders = {};
+                response.headers.forEach((value, key) => {
+                    responseHeaders[key] = value;
+                });
+                log(`Response headers: ${JSON.stringify(responseHeaders)}`);
                 
                 const responseText = await response.text();
                 log(`Response body length: ${responseText.length}`);
@@ -1167,7 +1327,7 @@
                     
                     // Try to parse error HTML if present
                     if (responseText.includes('<!DOCTYPE html>') && responseText.includes('Error')) {
-                        const errorMatch = responseText.match(/<strong>Error:<\/strong>\s*([^<]+)/);
+                        const errorMatch = responseText.match(/<h1>([^<]+)<\/h1>/);
                         const errorMessage = errorMatch ? errorMatch[1] : 'Unknown error';
                         throw new Error(`Server error: ${errorMessage}`);
                     } else {
@@ -1177,19 +1337,32 @@
                 
                 // Check if response is empty
                 if (!responseText || responseText.trim() === '') {
-                    log('Response is empty!', 'error');
-                    throw new Error('Empty response from server - workflow may have failed');
+                    log('ERROR: Response is empty!', 'error');
+                    log('This usually means:', 'error');
+                    log('1. The workflow executed but failed to generate HTML', 'error');
+                    log('2. The Respond node is not receiving data', 'error');
+                    log('3. There is an error in the workflow logic', 'error');
+                    
+                    // Try debug request
+                    log('Attempting debug request...', 'info');
+                    await debugWorkflow();
+                    
+                    throw new Error('Empty response from server. Check the Debug Workflow results above.');
                 }
                 
                 // Check if response is actually HTML
                 if (!responseText.includes('<!DOCTYPE html>') && !responseText.includes('<html')) {
                     log('Response does not appear to be HTML', 'error');
+                    log(`Response content-type: ${response.headers.get('content-type')}`, 'error');
                     log(`Response preview: ${responseText.substring(0, 500)}...`, 'error');
                     throw new Error('Invalid response format - not HTML. The workflow may have encountered an error.');
                 }
                 
                 // Hide loading
                 document.getElementById('loading').style.display = 'none';
+                
+                // Success - open result
+                log('Resume generation successful!', 'success');
                 
                 // Open result in new window
                 const resultWindow = window.open('', '_blank');
@@ -1221,6 +1394,14 @@
                 log(`Error during resume tailoring: ${error.message}`, 'error');
                 log(`Error stack: ${error.stack}`, 'error');
                 console.error('Full error object:', error);
+                
+                // Suggest checking n8n logs
+                log('TROUBLESHOOTING STEPS:', 'info');
+                log('1. Check your n8n workflow execution history', 'info');
+                log('2. Look for any failed executions or errors', 'info');
+                log('3. Ensure all workflow nodes are properly connected', 'info');
+                log('4. Verify your OpenAI API key is valid and has credits', 'info');
+                log('5. Check if the webhook URL is correct', 'info');
             }
         }
         

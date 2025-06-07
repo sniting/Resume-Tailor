@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Tailoring Assistant - Enhanced Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .debug-banner {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            text-align: center;
+            color: #856404;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .section h2 {
+            color: #444;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section h3 {
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .textarea-small {
+            min-height: 60px;
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        
+        .file-upload input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .file-upload-label {
+            display: block;
+            padding: 12px;
+            background: #f0f0f0;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        
+        .file-upload:hover .file-upload-label {
+            background: #e8e8e8;
+            border-color: #999;
+        }
+        
+        .file-upload.has-file .file-upload-label {
+            background: #e8f5e9;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .btn-save {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.95em;
+        }
+        
+        .btn-save:hover {
+            background: #218838;
+        }
+        
+        .btn-add {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+        
+        .btn-add:hover {
+            background: #138496;
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .btn-test {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-test:hover {
+            background: #138496;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .saved-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #d4edda;
+            color: #155724;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .saved-indicator.show {
+            opacity: 1;
+        }
+        
+        .debug-console {
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .debug-line {
+            margin-bottom: 5px;
+        }
+        
+        /* Tab Styles */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Dynamic Entry Styles */
+        .entry-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .bullet-list {
+            margin-left: 20px;
+        }
+        
+        .bullet-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+        
+        .bullet-number {
+            color: #666;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+        
+        .skill-categories {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .skill-category-item {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .skill-category-item {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 AI Resume Tailoring Assistant</h1>
+            <p class="subtitle">Transform your resume for any job in seconds</p>
+        </div>
+        
+        <div class="debug-banner">
+            ⚠️ DEBUG MODE ENABLED - Manual entry option available for better control
+        </div>
+        
+        <div id="alert" class="alert"></div>
+        
+        <!-- Personal Information Section -->
+        <div class="section">
+            <h2>
+                <span>👤</span>
+                Your Information
+                <span class="saved-indicator" id="savedIndicator">✓ Saved</span>
+            </h2>
+            <div class="info-grid">
+                <input type="text" id="userName" placeholder="Full Name" onblur="saveUserInfo()">
+                <input type="text" id="userLocation" placeholder="City, State" onblur="saveUserInfo()">
+                <input type="tel" id="userPhone" placeholder="Phone Number" onblur="saveUserInfo()">
+                <input type="email" id="userEmail" placeholder="Email Address" onblur="saveUserInfo()">
+                <input type="text" id="userLinkedin" placeholder="LinkedIn URL" onblur="saveUserInfo()">
+            </div>
+            <button class="btn btn-save" onclick="saveUserInfo(true)">💾 Save Information</button>
+        </div>
+        
+        <!-- Resume Input Section with Tabs -->
+        <div class="section">
+            <h2><span>📄</span> Your Master Resume</h2>
+            
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('upload')">📁 Upload/Paste Resume</button>
+                <button class="tab" onclick="switchTab('manual')">✏️ Manual Entry</button>
+            </div>
+            
+            <!-- Upload Tab Content -->
+            <div id="uploadTab" class="tab-content active">
+                <div class="file-upload" id="fileUploadDiv">
+                    <input type="file" id="resumeFile" accept=".docx,.txt" onchange="handleFileUpload(event)">
+                    <label class="file-upload-label">
+                        <span id="fileLabel">📁 Click to upload resume (.docx or .txt)</span>
+                    </label>
+                </div>
+                <textarea id="resumeContent" placeholder="Or paste your complete resume here..."></textarea>
+                <p class="help-text">Include all your education, experience, projects, and skills</p>
+            </div>
+            
+            <!-- Manual Entry Tab Content -->
+            <div id="manualTab" class="tab-content">
+                <!-- Education Section -->
+                <h3>🎓 Education</h3>
+                <div class="entry-container">
+                    <div class="info-grid">
+                        <input type="text" id="edu_university" placeholder="University Name">
+                        <input type="text" id="edu_degree" placeholder="Degree (e.g., Master of Science)">
+                        <input type="text" id="edu_major" placeholder="Major/Field">
+                        <input type="text" id="edu_graduation" placeholder="Graduation Date">
+                    </div>
+                    <textarea id="edu_coursework" class="textarea-small" placeholder="Relevant Coursework (comma-separated)"></textarea>
+                </div>
+                
+                <div class="entry-container">
+                    <h4>Previous Education (if applicable)</h4>
+                    <div class="info-grid">
+                        <input type="text" id="edu_prev_university" placeholder="Previous University">
+                        <input type="text" id="edu_prev_degree" placeholder="Previous Degree">
+                        <input type="text" id="edu_prev_major" placeholder="Previous Major">
+                        <input type="text" id="edu_prev_graduation" placeholder="Previous Graduation Date">
+                    </div>
+                </div>
+                
+                <!-- Skills Section -->
+                <h3>💻 Technical Skills (4 Categories)</h3>
+                <div class="skill-categories">
+                    <div class="skill-category-item">
+                        <input type="text" id="skill_cat_1" placeholder="Category 1 (e.g., Programming Languages)">
+                        <textarea id="skill_items_1" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
+                    </div>
+                    <div class="skill-category-item">
+                        <input type="text" id="skill_cat_2" placeholder="Category 2">
+                        <textarea id="skill_items_2" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
+                    </div>
+                    <div class="skill-category-item">
+                        <input type="text" id="skill_cat_3" placeholder="Category 3">
+                        <textarea id="skill_items_3" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
+                    </div>
+                    <div class="skill-category-item">
+                        <input type="text" id="skill_cat_4" placeholder="Category 4">
+                        <textarea id="skill_items_4" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Certifications -->
+                <h3>🏆 Certifications (Optional)</h3>
+                <textarea id="certifications" class="textarea-small" placeholder="List your certifications (comma-separated)"></textarea>
+                
+                <!-- Experience Section -->
+                <h3>💼 Professional Experience</h3>
+                <div id="experienceEntries"></div>
+                <button class="btn btn-add" onclick="addExperience()">+ Add Experience</button>
+                
+                <!-- Projects Section -->
+                <h3>🚀 Projects</h3>
+                <div id="projectEntries"></div>
+                <button class="btn btn-add" onclick="addProject()">+ Add Project</button>
+                
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-save" onclick="saveManualData()">💾 Save All Resume Data</button>
+                    <span class="saved-indicator" id="manualSavedIndicator">✓ Saved</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Job Description Section -->
+        <div class="section">
+            <h2><span>💼</span> Target Job Description</h2>
+            <textarea id="jobDescription" placeholder="Paste the complete job description here..."></textarea>
+            <p class="help-text">Include all requirements, responsibilities, and qualifications</p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-primary" onclick="tailorResume()">
+                <span>🚀</span> Tailor My Resume
+            </button>
+            <button class="btn btn-test" onclick="testWebhook()">
+                <span>🔧</span> Test Connection
+            </button>
+            <button class="btn btn-secondary" onclick="clearForm()">
+                <span>🗑️</span> Clear Form
+            </button>
+        </div>
+        
+        <!-- Loading State -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p class="loading-text">AI is tailoring your resume... This may take 30-60 seconds.</p>
+        </div>
+        
+        <!-- Debug Console -->
+        <div class="debug-console" id="debugConsole">
+            <div id="debugOutput"></div>
+        </div>
+    </div>
+    
+    <!-- Mammoth.js for DOCX parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
+    
+    <script>
+        // Webhook URL
+        const WEBHOOK_URL = 'https://sngsng.app.n8n.cloud/webhook/create-resume';
+        
+        // Debug mode
+        let debugMode = true;
+        
+        // Load user info and manual data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadUserInfo();
+            loadManualData();
+            // Add default entries if none exist
+            if (document.getElementById('experienceEntries').children.length === 0) {
+                addExperience();
+                addExperience();
+            }
+            if (document.getElementById('projectEntries').children.length === 0) {
+                addProject();
+                addProject();
+                addProject();
+            }
+            log('Page loaded - Debug mode enabled');
+        });
+        
+        // Debug logging
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const debugOutput = document.getElementById('debugOutput');
+            const debugConsole = document.getElementById('debugConsole');
+            
+            // Show debug console
+            debugConsole.style.display = 'block';
+            
+            // Add to debug output
+            const line = document.createElement('div');
+            line.className = 'debug-line';
+            line.textContent = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
+            debugOutput.appendChild(line);
+            
+            // Also log to browser console
+            console.log(`[${type}]`, message);
+            
+            // Auto scroll
+            debugConsole.scrollTop = debugConsole.scrollHeight;
+        }
+        
+        // Switch tabs
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (tabName === 'upload') {
+                document.getElementById('uploadTab').classList.add('active');
+            } else {
+                document.getElementById('manualTab').classList.add('active');
+            }
+            
+            log(`Switched to ${tabName} tab`);
+        }
+        
+        // Add Experience Entry
+        let experienceCount = 0;
+        function addExperience() {
+            const container = document.getElementById('experienceEntries');
+            const id = `exp_${experienceCount++}`;
+            
+            const entry = document.createElement('div');
+            entry.className = 'entry-container';
+            entry.id = id;
+            
+            entry.innerHTML = `
+                <div class="entry-header">
+                    <h4>Experience ${experienceCount}</h4>
+                    <button class="btn btn-remove" onclick="removeEntry('${id}')">Remove</button>
+                </div>
+                <div class="info-grid">
+                    <input type="text" id="${id}_company" placeholder="Company Name">
+                    <input type="text" id="${id}_location" placeholder="Location">
+                    <input type="text" id="${id}_position" placeholder="Position/Title">
+                    <input type="text" id="${id}_dates" placeholder="Dates (e.g., Jan 2020 - Dec 2022)">
+                </div>
+                <div class="bullet-list">
+                    ${experienceCount === 1 ? 
+                        [1,2,3,4,5].map(i => `
+                            <div class="bullet-item">
+                                <span class="bullet-number">${i}.</span>
+                                <textarea id="${id}_bullet_${i}" class="textarea-small" placeholder="Bullet point ${i} (35-50 words)"></textarea>
+                            </div>
+                        `).join('') :
+                        [1,2,3,4].map(i => `
+                            <div class="bullet-item">
+                                <span class="bullet-number">${i}.</span>
+                                <textarea id="${id}_bullet_${i}" class="textarea-small" placeholder="Bullet point ${i} (35-50 words)"></textarea>
+                            </div>
+                        `).join('')
+                    }
+                </div>
+            `;
+            
+            container.appendChild(entry);
+            log(`Added experience entry ${experienceCount}`);
+        }
+        
+        // Add Project Entry
+        let projectCount = 0;
+        function addProject() {
+            const container = document.getElementById('projectEntries');
+            const id = `proj_${projectCount++}`;
+            
+            const entry = document.createElement('div');
+            entry.className = 'entry-container';
+            entry.id = id;
+            
+            entry.innerHTML = `
+                <div class="entry-header">
+                    <h4>Project ${projectCount}</h4>
+                    <button class="btn btn-remove" onclick="removeEntry('${id}')">Remove</button>
+                </div>
+                <div class="info-grid">
+                    <input type="text" id="${id}_title" placeholder="Project Title">
+                    <input type="text" id="${id}_dates" placeholder="Dates (e.g., Jan 2023 - Mar 2023)">
+                </div>
+                <div class="bullet-list">
+                    ${[1,2,3].map(i => `
+                        <div class="bullet-item">
+                            <span class="bullet-number">${i}.</span>
+                            <textarea id="${id}_bullet_${i}" class="textarea-small" placeholder="Bullet point ${i} (35-50 words)"></textarea>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            container.appendChild(entry);
+            log(`Added project entry ${projectCount}`);
+        }
+        
+        // Remove Entry
+        function removeEntry(id) {
+            const entry = document.getElementById(id);
+            if (entry) {
+                entry.remove();
+                log(`Removed entry ${id}`);
+            }
+        }
+        
+        // Save Manual Data
+        function saveManualData() {
+            const manualData = {
+                education: {
+                    university: document.getElementById('edu_university').value,
+                    degree: document.getElementById('edu_degree').value,
+                    major: document.getElementById('edu_major').value,
+                    graduation: document.getElementById('edu_graduation').value,
+                    coursework: document.getElementById('edu_coursework').value,
+                    previous: {
+                        university: document.getElementById('edu_prev_university').value,
+                        degree: document.getElementById('edu_prev_degree').value,
+                        major: document.getElementById('edu_prev_major').value,
+                        graduation: document.getElementById('edu_prev_graduation').value
+                    }
+                },
+                skills: [
+                    { category: document.getElementById('skill_cat_1').value, items: document.getElementById('skill_items_1').value },
+                    { category: document.getElementById('skill_cat_2').value, items: document.getElementById('skill_items_2').value },
+                    { category: document.getElementById('skill_cat_3').value, items: document.getElementById('skill_items_3').value },
+                    { category: document.getElementById('skill_cat_4').value, items: document.getElementById('skill_items_4').value }
+                ],
+                certifications: document.getElementById('certifications').value,
+                experiences: [],
+                projects: []
+            };
+            
+            // Collect experiences
+            document.querySelectorAll('[id^="exp_"]').forEach(exp => {
+                if (exp.className === 'entry-container') {
+                    const id = exp.id;
+                    const bulletCount = id === 'exp_0' ? 5 : 4;
+                    const bullets = [];
+                    
+                    for (let i = 1; i <= bulletCount; i++) {
+                        const bullet = document.getElementById(`${id}_bullet_${i}`)?.value;
+                        if (bullet) bullets.push(bullet);
+                    }
+                    
+                    if (document.getElementById(`${id}_company`)?.value) {
+                        manualData.experiences.push({
+                            company: document.getElementById(`${id}_company`).value,
+                            location: document.getElementById(`${id}_location`).value,
+                            position: document.getElementById(`${id}_position`).value,
+                            dates: document.getElementById(`${id}_dates`).value,
+                            bullets: bullets
+                        });
+                    }
+                }
+            });
+            
+            // Collect projects
+            document.querySelectorAll('[id^="proj_"]').forEach(proj => {
+                if (proj.className === 'entry-container') {
+                    const id = proj.id;
+                    const bullets = [];
+                    
+                    for (let i = 1; i <= 3; i++) {
+                        const bullet = document.getElementById(`${id}_bullet_${i}`)?.value;
+                        if (bullet) bullets.push(bullet);
+                    }
+                    
+                    if (document.getElementById(`${id}_title`)?.value) {
+                        manualData.projects.push({
+                            title: document.getElementById(`${id}_title`).value,
+                            dates: document.getElementById(`${id}_dates`).value,
+                            bullets: bullets
+                        });
+                    }
+                }
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('manualResumeData', JSON.stringify(manualData));
+            
+            // Show saved indicator
+            const indicator = document.getElementById('manualSavedIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+            
+            showAlert('Resume data saved successfully!', 'success');
+            log('Manual resume data saved to localStorage');
+        }
+        
+        // Load Manual Data
+        function loadManualData() {
+            const savedData = localStorage.getItem('manualResumeData');
+            if (!savedData) return;
+            
+            try {
+                const data = JSON.parse(savedData);
+                
+                // Load education
+                if (data.education) {
+                    document.getElementById('edu_university').value = data.education.university || '';
+                    document.getElementById('edu_degree').value = data.education.degree || '';
+                    document.getElementById('edu_major').value = data.education.major || '';
+                    document.getElementById('edu_graduation').value = data.education.graduation || '';
+                    document.getElementById('edu_coursework').value = data.education.coursework || '';
+                    
+                    if (data.education.previous) {
+                        document.getElementById('edu_prev_university').value = data.education.previous.university || '';
+                        document.getElementById('edu_prev_degree').value = data.education.previous.degree || '';
+                        document.getElementById('edu_prev_major').value = data.education.previous.major || '';
+                        document.getElementById('edu_prev_graduation').value = data.education.previous.graduation || '';
+                    }
+                }
+                
+                // Load skills
+                if (data.skills) {
+                    data.skills.forEach((skill, index) => {
+                        if (index < 4) {
+                            document.getElementById(`skill_cat_${index + 1}`).value = skill.category || '';
+                            document.getElementById(`skill_items_${index + 1}`).value = skill.items || '';
+                        }
+                    });
+                }
+                
+                // Load certifications
+                document.getElementById('certifications').value = data.certifications || '';
+                
+                log('Manual resume data loaded from localStorage');
+            } catch (error) {
+                log('Error loading manual data: ' + error.message, 'error');
+            }
+        }
+        
+        // Convert manual data to resume text format
+        function convertManualDataToText() {
+            const savedData = localStorage.getItem('manualResumeData');
+            if (!savedData) return '';
+            
+            try {
+                const data = JSON.parse(savedData);
+                let resumeText = '';
+                
+                // Education
+                if (data.education) {
+                    resumeText += 'EDUCATION\n';
+                    resumeText += `${data.education.university || ''}\n`;
+                    resumeText += `${data.education.degree || ''} in ${data.education.major || ''}\n`;
+                    resumeText += `${data.education.graduation || ''}\n`;
+                    if (data.education.coursework) {
+                        resumeText += `Relevant Coursework: ${data.education.coursework}\n`;
+                    }
+                    
+                    if (data.education.previous && data.education.previous.university) {
+                        resumeText += `\n${data.education.previous.university}\n`;
+                        resumeText += `${data.education.previous.degree} in ${data.education.previous.major}\n`;
+                        resumeText += `${data.education.previous.graduation}\n`;
+                    }
+                    resumeText += '\n';
+                }
+                
+                // Skills
+                if (data.skills && data.skills.some(s => s.category)) {
+                    resumeText += 'TECHNICAL SKILLS\n';
+                    data.skills.forEach(skill => {
+                        if (skill.category && skill.items) {
+                            resumeText += `${skill.category}: ${skill.items}\n`;
+                        }
+                    });
+                    if (data.certifications) {
+                        resumeText += `Certifications: ${data.certifications}\n`;
+                    }
+                    resumeText += '\n';
+                }
+                
+                // Experience
+                if (data.experiences && data.experiences.length > 0) {
+                    resumeText += 'PROFESSIONAL EXPERIENCE\n';
+                    data.experiences.forEach(exp => {
+                        resumeText += `${exp.company}, ${exp.location}\n`;
+                        resumeText += `${exp.position} | ${exp.dates}\n`;
+                        exp.bullets.forEach(bullet => {
+                            resumeText += `• ${bullet}\n`;
+                        });
+                        resumeText += '\n';
+                    });
+                }
+                
+                // Projects
+                if (data.projects && data.projects.length > 0) {
+                    resumeText += 'PROJECTS\n';
+                    data.projects.forEach(proj => {
+                        resumeText += `${proj.title} | ${proj.dates}\n`;
+                        proj.bullets.forEach(bullet => {
+                            resumeText += `• ${bullet}\n`;
+                        });
+                        resumeText += '\n';
+                    });
+                }
+                
+                return resumeText;
+            } catch (error) {
+                log('Error converting manual data: ' + error.message, 'error');
+                return '';
+            }
+        }
+        
+        // Test webhook connection
+        async function testWebhook() {
+            log('Testing webhook connection...');
+            showAlert('Testing connection to webhook...', 'info');
+            
+            try {
+                const testData = {
+                    action: 'test',
+                    data: {
+                        resumeContent: 'Test resume content',
+                        jobDescription: 'Test job description',
+                        name: 'Test User',
+                        location: 'Test City',
+                        phone: '1234567890',
+                        email: 'test@example.com',
+                        linkedin: 'linkedin.com/test'
+                    }
+                };
+                
+                log(`Sending test request with data: ${JSON.stringify(testData).substring(0, 200)}...`);
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                log(`Response status: ${response.status}`);
+                log(`Response headers: ${JSON.stringify(Object.fromEntries(response.headers))}`);
+                
+                const responseText = await response.text();
+                log(`Response body length: ${responseText.length}`);
+                log(`Response preview: ${responseText.substring(0, 500)}...`);
+                
+                if (response.ok) {
+                    if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html')) {
+                        showAlert('Connection successful! Webhook is working and returning HTML.', 'success');
+                        log('Webhook test successful - HTML response received', 'success');
+                    } else {
+                        showAlert('Connection successful but response is not HTML. Check workflow.', 'error');
+                        log('Webhook returned non-HTML response', 'error');
+                    }
+                } else {
+                    showAlert(`Connection failed! Status: ${response.status}`, 'error');
+                    log(`Webhook test failed with status ${response.status}`, 'error');
+                }
+            } catch (error) {
+                showAlert('Connection error: ' + error.message, 'error');
+                log(`Connection error: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+            }
+        }
+        
+        // Save user information to localStorage
+        function saveUserInfo(showAlertMessage = false) {
+            const fields = {
+                userName: document.getElementById('userName').value,
+                userLocation: document.getElementById('userLocation').value,
+                userPhone: document.getElementById('userPhone').value,
+                userEmail: document.getElementById('userEmail').value,
+                userLinkedin: document.getElementById('userLinkedin').value
+            };
+            
+            Object.entries(fields).forEach(([key, value]) => {
+                if (value) {
+                    localStorage.setItem(key, value);
+                }
+            });
+            
+            // Show saved indicator
+            const indicator = document.getElementById('savedIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => indicator.classList.remove('show'), 2000);
+            
+            if (showAlertMessage) {
+                showAlert('Your information has been saved!', 'success');
+            }
+            
+            log('User information saved to localStorage');
+        }
+        
+        // Load user information from localStorage
+        function loadUserInfo() {
+            const fields = ['userName', 'userLocation', 'userPhone', 'userEmail', 'userLinkedin'];
+            fields.forEach(field => {
+                const value = localStorage.getItem(field);
+                if (value) {
+                    document.getElementById(field).value = value;
+                }
+            });
+            log('User information loaded from localStorage');
+        }
+        
+        // Handle file upload
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            log(`File selected: ${file.name} (${file.size} bytes)`);
+            
+            const fileType = file.name.split('.').pop().toLowerCase();
+            const fileUploadDiv = document.getElementById('fileUploadDiv');
+            const fileLabel = document.getElementById('fileLabel');
+            
+            try {
+                if (fileType === 'docx') {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    document.getElementById('resumeContent').value = result.value;
+                    fileUploadDiv.classList.add('has-file');
+                    fileLabel.textContent = `✅ ${file.name} uploaded successfully`;
+                    showAlert('Resume uploaded successfully!', 'success');
+                    log(`DOCX file processed successfully. Content length: ${result.value.length}`, 'success');
+                } else if (fileType === 'txt') {
+                    const text = await file.text();
+                    document.getElementById('resumeContent').value = text;
+                    fileUploadDiv.classList.add('has-file');
+                    fileLabel.textContent = `✅ ${file.name} uploaded successfully`;
+                    showAlert('Resume uploaded successfully!', 'success');
+                    log(`TXT file processed successfully. Content length: ${text.length}`, 'success');
+                } else {
+                    showAlert('Please upload a .docx or .txt file', 'error');
+                    log('Invalid file type: ' + fileType, 'error');
+                }
+            } catch (error) {
+                showAlert('Error reading file: ' + error.message, 'error');
+                log(`File reading error: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+            }
+        }
+        
+        // Tailor resume function
+        async function tailorResume() {
+            // Check which tab is active
+            const isManualEntry = document.getElementById('manualTab').classList.contains('active');
+            
+            let resumeContent = '';
+            if (isManualEntry) {
+                // Save manual data first
+                saveManualData();
+                // Convert manual data to text format
+                resumeContent = convertManualDataToText();
+                log('Using manual entry data for resume');
+            } else {
+                // Use uploaded/pasted content
+                resumeContent = document.getElementById('resumeContent').value;
+                log('Using uploaded/pasted resume content');
+            }
+            
+            const jobDescription = document.getElementById('jobDescription').value;
+            
+            // Get user info
+            const userInfo = {
+                name: document.getElementById('userName').value || 'Your Name',
+                location: document.getElementById('userLocation').value || 'City, State',
+                phone: document.getElementById('userPhone').value || '(555) 123-4567',
+                email: document.getElementById('userEmail').value || 'email@example.com',
+                linkedin: document.getElementById('userLinkedin').value || 'linkedin.com/in/profile'
+            };
+            
+            log('Starting resume tailoring process...');
+            log(`Resume content length: ${resumeContent.length}`);
+            log(`Job description length: ${jobDescription.length}`);
+            log(`User info: ${JSON.stringify(userInfo)}`);
+            log(`Entry method: ${isManualEntry ? 'Manual' : 'Upload/Paste'}`);
+            
+            // Validate inputs
+            if (!resumeContent.trim()) {
+                showAlert('Please provide your resume content', 'error');
+                log('Validation failed: No resume content', 'error');
+                return;
+            }
+            
+            if (!jobDescription.trim()) {
+                showAlert('Please provide the job description', 'error');
+                log('Validation failed: No job description', 'error');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            hideAlert();
+            
+            const requestBody = {
+                action: 'tailor_resume',
+                data: {
+                    resumeContent: resumeContent,
+                    jobDescription: jobDescription,
+                    ...userInfo
+                }
+            };
+            
+            log(`Request body size: ${JSON.stringify(requestBody).length} bytes`);
+            
+            try {
+                log('Sending request to webhook...');
+                const startTime = Date.now();
+                
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const responseTime = Date.now() - startTime;
+                log(`Response received in ${responseTime}ms`);
+                log(`Response status: ${response.status}`);
+                log(`Response status text: ${response.statusText}`);
+                
+                const responseText = await response.text();
+                log(`Response body length: ${responseText.length}`);
+                
+                if (!response.ok) {
+                    log(`Error response body: ${responseText}`, 'error');
+                    
+                    // Try to parse error HTML if present
+                    if (responseText.includes('<!DOCTYPE html>') && responseText.includes('Error')) {
+                        const errorMatch = responseText.match(/<strong>Error:<\/strong>\s*([^<]+)/);
+                        const errorMessage = errorMatch ? errorMatch[1] : 'Unknown error';
+                        throw new Error(`Server error: ${errorMessage}`);
+                    } else {
+                        throw new Error(`HTTP error! status: ${response.status}, message: ${responseText.substring(0, 200)}`);
+                    }
+                }
+                
+                // Check if response is empty
+                if (!responseText || responseText.trim() === '') {
+                    log('Response is empty!', 'error');
+                    throw new Error('Empty response from server - workflow may have failed');
+                }
+                
+                // Check if response is actually HTML
+                if (!responseText.includes('<!DOCTYPE html>') && !responseText.includes('<html')) {
+                    log('Response does not appear to be HTML', 'error');
+                    log(`Response preview: ${responseText.substring(0, 500)}...`, 'error');
+                    throw new Error('Invalid response format - not HTML. The workflow may have encountered an error.');
+                }
+                
+                // Hide loading
+                document.getElementById('loading').style.display = 'none';
+                
+                // Open result in new window
+                const resultWindow = window.open('', '_blank');
+                if (resultWindow) {
+                    resultWindow.document.write(responseText);
+                    resultWindow.document.close();
+                    showAlert('Resume tailored successfully! Check the new window.', 'success');
+                    log('Resume opened in new window successfully', 'success');
+                } else {
+                    showAlert('Pop-up blocked! Please allow pop-ups for this site.', 'error');
+                    log('Pop-up blocked by browser', 'error');
+                    
+                    // Offer to download as alternative
+                    const blob = new Blob([responseText], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'tailored-resume.html';
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    
+                    showAlert('Pop-up blocked! Resume downloaded as HTML file instead.', 'info');
+                    log('Resume downloaded as HTML file', 'info');
+                }
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showAlert('Error: ' + error.message + '. Check debug console for details.', 'error');
+                log(`Error during resume tailoring: ${error.message}`, 'error');
+                log(`Error stack: ${error.stack}`, 'error');
+                console.error('Full error object:', error);
+            }
+        }
+        
+        // Clear form
+        function clearForm() {
+            const confirmClear = confirm('Are you sure you want to clear all form data? This will not affect your saved information.');
+            if (!confirmClear) return;
+            
+            document.getElementById('resumeContent').value = '';
+            document.getElementById('jobDescription').value = '';
+            document.getElementById('resumeFile').value = '';
+            document.getElementById('fileUploadDiv').classList.remove('has-file');
+            document.getElementById('fileLabel').textContent = '📁 Click to upload resume (.docx or .txt)';
+            
+            // Clear manual entry fields (but not saved data)
+            document.querySelectorAll('#manualTab input[type="text"], #manualTab textarea').forEach(field => {
+                if (!field.id.startsWith('user')) {
+                    field.value = '';
+                }
+            });
+            
+            showAlert('Form cleared! Your saved information is still preserved.', 'success');
+            log('Form cleared');
+        }
+        
+        // Show alert
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => hideAlert(), 5000);
+            }
+        }
+        
+        // Hide alert
+        function hideAlert() {
+            const alert = document.getElementById('alert');
+            alert.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

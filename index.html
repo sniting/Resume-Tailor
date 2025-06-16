@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Tailoring Assistant - Enhanced Editor</title>
+    <title>AI Resume Tailoring Assistant - Enhanced Editor with Debug</title>
     <style>
         * {
             margin: 0;
@@ -16,6 +16,129 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+        }
+        
+        /* Debug Panel Styles */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            max-height: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+        }
+        
+        .debug-panel.active {
+            display: block;
+        }
+        
+        .debug-panel h3 {
+            color: #00ff00;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #00ff00;
+            padding-bottom: 5px;
+        }
+        
+        .debug-log {
+            margin-bottom: 5px;
+            padding: 3px;
+            border-left: 3px solid #00ff00;
+            padding-left: 10px;
+        }
+        
+        .debug-log.error {
+            border-left-color: #ff0000;
+            color: #ff0000;
+        }
+        
+        .debug-log.warning {
+            border-left-color: #ffff00;
+            color: #ffff00;
+        }
+        
+        .debug-log.info {
+            border-left-color: #00ffff;
+            color: #00ffff;
+        }
+        
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 10000;
+            font-size: 14px;
+        }
+        
+        .debug-toggle:hover {
+            background: #555;
+        }
+        
+        /* Data Inspector */
+        .data-inspector {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 350px;
+            max-height: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .data-inspector.active {
+            display: block;
+        }
+        
+        .data-inspector h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .data-section {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .data-section h4 {
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .data-count {
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .project-list {
+            font-size: 12px;
+            margin-top: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .project-item {
+            padding: 2px 0;
+            border-bottom: 1px solid #eee;
         }
         
         /* Page Navigation */
@@ -215,6 +338,18 @@
         
         .btn-save:hover {
             background: #218838;
+        }
+        
+        .btn-debug {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.95em;
+            margin-left: 10px;
+        }
+        
+        .btn-debug:hover {
+            background: #c82333;
         }
         
         .action-buttons {
@@ -479,6 +614,34 @@
     </style>
 </head>
 <body>
+    <!-- Debug Toggle Button -->
+    <button class="debug-toggle" onclick="toggleDebug()">🐛 Toggle Debug</button>
+    
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debugPanel">
+        <h3>Debug Console</h3>
+        <div id="debugLogs"></div>
+    </div>
+    
+    <!-- Data Inspector -->
+    <div class="data-inspector" id="dataInspector">
+        <h3>📊 Data Inspector</h3>
+        <div class="data-section">
+            <h4>Resume Content Status</h4>
+            <div>Length: <span class="data-count" id="resumeLength">0</span> characters</div>
+            <div>Projects Found: <span class="data-count" id="projectCount">0</span></div>
+            <div class="project-list" id="projectList"></div>
+        </div>
+        <div class="data-section">
+            <h4>Job Description Status</h4>
+            <div>Length: <span class="data-count" id="jdLength">0</span> characters</div>
+        </div>
+        <div class="data-section">
+            <h4>Last Action</h4>
+            <div id="lastAction">None</div>
+        </div>
+    </div>
+    
     <!-- Page Navigation -->
     <div class="page-nav">
         <button class="nav-btn active" onclick="showPage('ai-page')">
@@ -514,6 +677,7 @@
                     <input type="text" id="userLinkedin" placeholder="LinkedIn URL" onblur="saveUserInfo()">
                 </div>
                 <button class="btn btn-save" onclick="saveUserInfo(true)">💾 Save Information</button>
+                <button class="btn btn-debug" onclick="analyzeResumeContent()">🔍 Analyze Resume Content</button>
             </div>
             
             <!-- Resume Upload Section -->
@@ -525,14 +689,14 @@
                         <span id="fileLabel">📁 Click to upload resume (.docx or .txt)</span>
                     </label>
                 </div>
-                <textarea id="resumeContent" placeholder="Or paste your complete resume here..."></textarea>
+                <textarea id="resumeContent" placeholder="Or paste your complete resume here..." onchange="updateDataInspector()"></textarea>
                 <p class="help-text">Include all your education, experience, projects, and skills</p>
             </div>
             
             <!-- Job Description Section -->
             <div class="section">
                 <h2><span>💼</span> Target Job Description</h2>
-                <textarea id="jobDescription" placeholder="Paste the complete job description here..."></textarea>
+                <textarea id="jobDescription" placeholder="Paste the complete job description here..." onchange="updateDataInspector()"></textarea>
                 <p class="help-text">Include all requirements, responsibilities, and qualifications</p>
             </div>
             
@@ -660,6 +824,161 @@
         const AI_WEBHOOK_URL = 'https://sngsng.app.n8n.cloud/webhook/create-resume';
         const EDIT_WEBHOOK_URL = 'https://sngsng.app.n8n.cloud/webhook/manual-resume';
         
+        // Debug mode flag
+        let debugMode = false;
+        let debugLogs = [];
+        
+        // Debug functions
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugPanel = document.getElementById('debugPanel');
+            const dataInspector = document.getElementById('dataInspector');
+            
+            if (debugMode) {
+                debugPanel.classList.add('active');
+                dataInspector.classList.add('active');
+                logDebug('Debug mode activated', 'info');
+            } else {
+                debugPanel.classList.remove('active');
+                dataInspector.classList.remove('active');
+            }
+        }
+        
+        function logDebug(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = {
+                time: timestamp,
+                message: message,
+                type: type
+            };
+            
+            debugLogs.push(logEntry);
+            
+            // Keep only last 50 logs
+            if (debugLogs.length > 50) {
+                debugLogs.shift();
+            }
+            
+            // Update debug panel
+            if (debugMode) {
+                const debugLogsDiv = document.getElementById('debugLogs');
+                const logDiv = document.createElement('div');
+                logDiv.className = `debug-log ${type}`;
+                logDiv.textContent = `[${timestamp}] ${message}`;
+                debugLogsDiv.appendChild(logDiv);
+                
+                // Auto-scroll to bottom
+                debugLogsDiv.scrollTop = debugLogsDiv.scrollHeight;
+            }
+            
+            // Also log to console
+            console.log(`[DEBUG ${timestamp}] ${message}`);
+        }
+        
+        // Update data inspector
+        function updateDataInspector() {
+            const resumeContent = document.getElementById('resumeContent').value;
+            const jobDescription = document.getElementById('jobDescription').value;
+            
+            // Update lengths
+            document.getElementById('resumeLength').textContent = resumeContent.length;
+            document.getElementById('jdLength').textContent = jobDescription.length;
+            
+            // Extract and count projects
+            const projects = extractProjectsFromResume(resumeContent);
+            document.getElementById('projectCount').textContent = projects.length;
+            
+            // Display project list
+            const projectListDiv = document.getElementById('projectList');
+            projectListDiv.innerHTML = '';
+            projects.forEach((project, index) => {
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project-item';
+                projectDiv.textContent = `${index + 1}. ${project}`;
+                projectListDiv.appendChild(projectDiv);
+            });
+            
+            logDebug(`Data updated - Resume: ${resumeContent.length} chars, Projects: ${projects.length}`, 'info');
+        }
+        
+        // Extract projects from resume for debugging
+        function extractProjectsFromResume(resumeContent) {
+            const projects = [];
+            
+            // Look for PROJECTS section
+            const projectsMatch = resumeContent.match(/PROJECTS[\s\S]*$/mi);
+            if (projectsMatch) {
+                const projectsSection = projectsMatch[0];
+                
+                // Pattern to find project titles
+                const projectPattern = /^([^\n]+?)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/gm;
+                
+                let match;
+                while ((match = projectPattern.exec(projectsSection)) !== null) {
+                    const title = match[1].trim();
+                    if (title && !title.includes('PROJECTS') && !title.includes('University')) {
+                        projects.push(title);
+                    }
+                }
+            }
+            
+            return projects;
+        }
+        
+        // Analyze resume content in detail
+        function analyzeResumeContent() {
+            const resumeContent = document.getElementById('resumeContent').value;
+            
+            if (!resumeContent) {
+                showAlert('Please provide resume content first', 'error', 'ai');
+                return;
+            }
+            
+            logDebug('=== ANALYZING RESUME CONTENT ===', 'info');
+            
+            // Extract all sections
+            const sections = {
+                education: resumeContent.match(/EDUCATION[\s\S]*?(?=\n[A-Z]+:|$)/mi),
+                skills: resumeContent.match(/TECHNICAL SKILLS[\s\S]*?(?=\n[A-Z]+:|$)/mi),
+                experience: resumeContent.match(/PROFESSIONAL EXPERIENCE[\s\S]*?(?=\n[A-Z]+:|$)/mi),
+                projects: resumeContent.match(/PROJECTS[\s\S]*$/mi)
+            };
+            
+            // Log section findings
+            Object.entries(sections).forEach(([section, match]) => {
+                if (match) {
+                    logDebug(`${section.toUpperCase()} section found: ${match[0].length} characters`, 'info');
+                } else {
+                    logDebug(`${section.toUpperCase()} section NOT FOUND`, 'warning');
+                }
+            });
+            
+            // Detailed project analysis
+            if (sections.projects) {
+                const projectsText = sections.projects[0];
+                const projects = extractProjectsFromResume(resumeContent);
+                
+                logDebug(`\nPROJECTS ANALYSIS:`, 'info');
+                logDebug(`Total projects found: ${projects.length}`, 'info');
+                
+                projects.forEach((project, index) => {
+                    logDebug(`Project ${index + 1}: ${project}`, 'info');
+                });
+                
+                // Check for potential issues
+                if (projects.length < 7) {
+                    logDebug('WARNING: Found fewer than 7 projects!', 'error');
+                    logDebug('This might indicate a parsing issue', 'error');
+                }
+                
+                // Show raw projects section
+                logDebug('\nRAW PROJECTS SECTION (first 500 chars):', 'info');
+                logDebug(projectsText.substring(0, 500) + '...', 'info');
+            }
+            
+            showAlert('Resume analysis complete! Check the debug console.', 'success', 'ai');
+        }
+        
         // Page switching
         function showPage(pageId) {
             // Hide all pages
@@ -680,15 +999,18 @@
             } else {
                 document.querySelectorAll('.nav-btn')[1].classList.add('active');
             }
+            
+            logDebug(`Switched to page: ${pageId}`, 'info');
         }
         
         // Load user info on page load
         window.addEventListener('DOMContentLoaded', function() {
             loadUserInfo();
+            logDebug('Page loaded, user info loaded', 'info');
         });
         
         // Save user information to localStorage
-        function saveUserInfo(showAlert = false) {
+        function saveUserInfo(showAlertFlag = false) {
             const fields = {
                 userName: document.getElementById('userName').value,
                 userLocation: document.getElementById('userLocation').value,
@@ -708,9 +1030,11 @@
             indicator.classList.add('show');
             setTimeout(() => indicator.classList.remove('show'), 2000);
             
-            if (showAlert) {
+            if (showAlertFlag) {
                 showAlert('Your information has been saved!', 'success', 'ai');
             }
+            
+            logDebug('User info saved', 'info');
         }
         
         // Load user information from localStorage
@@ -733,6 +1057,8 @@
             const fileUploadDiv = document.getElementById('fileUploadDiv');
             const fileLabel = document.getElementById('fileLabel');
             
+            logDebug(`File upload started: ${file.name} (${fileType})`, 'info');
+            
             try {
                 if (fileType === 'docx') {
                     const arrayBuffer = await file.arrayBuffer();
@@ -741,21 +1067,27 @@
                     fileUploadDiv.classList.add('has-file');
                     fileLabel.textContent = `✅ ${file.name} uploaded successfully`;
                     showAlert('Resume uploaded successfully!', 'success', 'ai');
+                    logDebug(`DOCX file processed: ${result.value.length} characters extracted`, 'info');
                 } else if (fileType === 'txt') {
                     const text = await file.text();
                     document.getElementById('resumeContent').value = text;
                     fileUploadDiv.classList.add('has-file');
                     fileLabel.textContent = `✅ ${file.name} uploaded successfully`;
                     showAlert('Resume uploaded successfully!', 'success', 'ai');
+                    logDebug(`TXT file processed: ${text.length} characters`, 'info');
                 } else {
                     showAlert('Please upload a .docx or .txt file', 'error', 'ai');
+                    logDebug('Invalid file type', 'error');
                 }
+                
+                updateDataInspector();
             } catch (error) {
                 showAlert('Error reading file: ' + error.message, 'error', 'ai');
+                logDebug(`File reading error: ${error.message}`, 'error');
             }
         }
         
-        // AI-powered resume tailoring
+        // AI-powered resume tailoring with enhanced debugging
         async function tailorResume() {
             const resumeContent = document.getElementById('resumeContent').value;
             const jobDescription = document.getElementById('jobDescription').value;
@@ -778,8 +1110,31 @@
                 return;
             }
             
+            // Extract projects for debugging
+            const projects = extractProjectsFromResume(resumeContent);
+            logDebug('=== SENDING TO WORKFLOW ===', 'info');
+            logDebug(`Resume length: ${resumeContent.length} characters`, 'info');
+            logDebug(`Job description length: ${jobDescription.length} characters`, 'info');
+            logDebug(`Projects found in resume: ${projects.length}`, 'info');
+            projects.forEach((project, index) => {
+                logDebug(`  ${index + 1}. ${project}`, 'info');
+            });
+            
             document.getElementById('loading-ai').style.display = 'block';
             hideAlert('ai');
+            
+            const requestData = {
+                action: 'tailor_resume',
+                data: {
+                    resumeContent: resumeContent,
+                    jobDescription: jobDescription,
+                    ...userInfo
+                }
+            };
+            
+            // Log the data being sent
+            logDebug('Sending request to webhook...', 'info');
+            logDebug(`Request data size: ${JSON.stringify(requestData).length} bytes`, 'info');
             
             try {
                 const response = await fetch(AI_WEBHOOK_URL, {
@@ -787,15 +1142,10 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        action: 'tailor_resume',
-                        data: {
-                            resumeContent: resumeContent,
-                            jobDescription: jobDescription,
-                            ...userInfo
-                        }
-                    })
+                    body: JSON.stringify(requestData)
                 });
+                
+                logDebug(`Response status: ${response.status}`, 'info');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -804,18 +1154,27 @@
                 const html = await response.text();
                 document.getElementById('loading-ai').style.display = 'none';
                 
+                logDebug(`Response received: ${html.length} characters`, 'info');
+                
+                // Check if response contains project information
+                const projectsInResponse = (html.match(/project/gi) || []).length;
+                logDebug(`Response mentions "project" ${projectsInResponse} times`, 'info');
+                
                 const resultWindow = window.open('', '_blank');
                 if (resultWindow) {
                     resultWindow.document.write(html);
                     resultWindow.document.close();
                     showAlert('Resume tailored successfully! Check the new window.', 'success', 'ai');
+                    logDebug('Resume opened in new window', 'info');
                 } else {
                     showAlert('Pop-up blocked! Please allow pop-ups for this site.', 'error', 'ai');
+                    logDebug('Pop-up blocked', 'error');
                 }
                 
             } catch (error) {
                 document.getElementById('loading-ai').style.display = 'none';
                 showAlert('Error: ' + error.message, 'error', 'ai');
+                logDebug(`Request error: ${error.message}`, 'error');
             }
         }
         
@@ -827,6 +1186,8 @@
             document.getElementById('fileUploadDiv').classList.remove('has-file');
             document.getElementById('fileLabel').textContent = '📁 Click to upload resume (.docx or .txt)';
             showAlert('Form cleared!', 'success', 'ai');
+            updateDataInspector();
+            logDebug('Form cleared', 'info');
         }
         
         // Enhanced PDF Upload Handler with Better Text Extraction
@@ -840,10 +1201,14 @@
             const pdfUploadDiv = document.getElementById('pdfUploadDiv');
             const pdfLabel = document.getElementById('pdfLabel');
             
+            logDebug(`PDF upload started: ${file.name}`, 'info');
+            
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
                 let fullText = '';
+                
+                logDebug(`PDF has ${pdf.numPages} pages`, 'info');
                 
                 // Extract text from all pages
                 for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
@@ -906,6 +1271,15 @@
                     .replace(/\n{3,}/g, '\n\n') // Remove excessive line breaks
                     .trim();
                 
+                logDebug(`Extracted ${fullText.length} characters from PDF`, 'info');
+                
+                // Extract projects from PDF for debugging
+                const pdfProjects = extractProjectsFromResume(fullText);
+                logDebug(`Projects found in PDF: ${pdfProjects.length}`, 'info');
+                pdfProjects.forEach((project, index) => {
+                    logDebug(`  ${index + 1}. ${project}`, 'info');
+                });
+                
                 // Apply auto-formatting to match parser expectations
                 const formattedText = autoFormatExtractedText(fullText);
                 
@@ -927,7 +1301,7 @@
                 
             } catch (error) {
                 showAlert('Error reading PDF: ' + error.message, 'error', 'edit');
-                console.error('PDF extraction error:', error);
+                logDebug(`PDF extraction error: ${error.message}`, 'error');
             }
         }
         
@@ -1044,6 +1418,7 @@
             mergeBulletPoints();
             
             showAlert('Resume auto-formatted and bullet points merged for parser compatibility!', 'success', 'edit');
+            logDebug('Resume auto-formatted', 'info');
         }
         
         // Merge multi-line bullet points into single lines
@@ -1117,6 +1492,7 @@
             
             editor.value = merged.join('\n');
             showAlert('Multi-line bullet points have been merged!', 'success', 'edit');
+            logDebug('Bullet points merged', 'info');
         }
         
         // Fix date spacing throughout the document
@@ -1138,6 +1514,7 @@
             
             editor.value = text;
             showAlert('Date spacing fixed!', 'success', 'edit');
+            logDebug('Date spacing fixed', 'info');
         }
         
         // Validate format
@@ -1166,36 +1543,19 @@
             
             if (issues.length === 0) {
                 showAlert('✅ Format validation passed! Your resume is properly formatted.', 'success', 'edit');
+                logDebug('Format validation passed', 'info');
             } else {
                 showAlert('⚠️ Format issues found:\n' + issues.join('\n'), 'error', 'edit');
+                logDebug(`Format validation failed: ${issues.length} issues found`, 'error');
             }
         }
         
         // Show format example
         function showFormatExample() {
-            const example = `EDUCATION
-Northeastern University  December 2025
-Master of Science in Engineering Management
-Relevant Coursework: Course 1, Course 2, Course 3
-
-TECHNICAL SKILLS
-Programming Languages: Python, R, SQL
-Tools & Technologies: Tableau, Excel, MS Project
-Certifications: Six Sigma Green Belt
-
-PROFESSIONAL EXPERIENCE
-Company Name, City, State
-Job Title  Month Year - Month Year
-• Bullet point describing achievement
-• Another bullet point with impact
-
-PROJECTS
-Project Title  Month Year - Month Year
-Northeastern University
-• Project bullet point
-• Another project detail`;
+            const example = `FORMAT EXAMPLE (note the double spaces before dates!):\n\nEDUCATION\nNortheastern University  December 2025\nMaster of Science in Engineering Management\nRelevant Coursework: Course 1, Course 2, Course 3\n\nTECHNICAL SKILLS\nProgramming Languages: Python, R, SQL\nTools & Technologies: Tableau, Excel, MS Project\nCertifications: Six Sigma Green Belt\n\nPROFESSIONAL EXPERIENCE\nCompany Name, City, State\nJob Title  Month Year - Month Year\n• Bullet point describing achievement\n• Another bullet point with impact\n\nPROJECTS\nProject Title  Month Year - Month Year\nNortheastern University\n• Project bullet point\n• Another project detail`;
             
-            alert('Format Example (note the double spaces before dates!):\n\n' + example);
+            alert(example);
+            logDebug('Format example shown', 'info');
         }
         
         // Editor toolbar functions
@@ -1351,9 +1711,10 @@ Northeastern University
             
             editor.value = text;
             showAlert('Formatting cleaned and bullets merged!', 'success', 'edit');
+            logDebug('Formatting cleaned', 'info');
         }
         
-        // Generate final resume
+        // Generate final resume with debugging
         async function generateFinalResume() {
             const editedContent = document.getElementById('resumeEditor').value;
             
@@ -1361,6 +1722,15 @@ Northeastern University
                 showAlert('Please upload and edit a resume before generating', 'error', 'edit');
                 return;
             }
+            
+            // Extract projects for debugging
+            const projects = extractProjectsFromResume(editedContent);
+            logDebug('=== SENDING TO MANUAL WORKFLOW ===', 'info');
+            logDebug(`Resume length: ${editedContent.length} characters`, 'info');
+            logDebug(`Projects found: ${projects.length}`, 'info');
+            projects.forEach((project, index) => {
+                logDebug(`  ${index + 1}. ${project}`, 'info');
+            });
             
             // Get user info from localStorage
             const userInfo = {
@@ -1374,19 +1744,25 @@ Northeastern University
             document.getElementById('loading-edit').style.display = 'block';
             hideAlert('edit');
             
+            const requestData = {
+                data: {
+                    resumeContent: editedContent,
+                    userInfo: userInfo
+                }
+            };
+            
+            logDebug('Sending to manual webhook...', 'info');
+            
             try {
                 const response = await fetch(EDIT_WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        data: {
-                            resumeContent: editedContent,
-                            userInfo: userInfo
-                        }
-                    })
+                    body: JSON.stringify(requestData)
                 });
+                
+                logDebug(`Response status: ${response.status}`, 'info');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -1395,19 +1771,24 @@ Northeastern University
                 const html = await response.text();
                 document.getElementById('loading-edit').style.display = 'none';
                 
+                logDebug(`Response received: ${html.length} characters`, 'info');
+                
                 // Open result in new window
                 const resultWindow = window.open('', '_blank');
                 if (resultWindow) {
                     resultWindow.document.write(html);
                     resultWindow.document.close();
                     showAlert('Final resume generated successfully! Check the new window.', 'success', 'edit');
+                    logDebug('Final resume opened in new window', 'info');
                 } else {
                     showAlert('Pop-up blocked! Please allow pop-ups for this site.', 'error', 'edit');
+                    logDebug('Pop-up blocked', 'error');
                 }
                 
             } catch (error) {
                 document.getElementById('loading-edit').style.display = 'none';
                 showAlert('Error: ' + error.message, 'error', 'edit');
+                logDebug(`Request error: ${error.message}`, 'error');
             }
         }
         
@@ -1422,6 +1803,7 @@ Northeastern University
             document.getElementById('formatHelpers').style.display = 'none';
             document.getElementById('generateFinalBtn').style.display = 'none';
             showAlert('Form cleared!', 'success', 'edit');
+            logDebug('Edit form cleared', 'info');
         }
         
         // Show alert
@@ -1431,6 +1813,8 @@ Northeastern University
             alert.textContent = message;
             alert.className = `alert alert-${type}`;
             alert.style.display = 'block';
+            
+            document.getElementById('lastAction').textContent = `${type.toUpperCase()}: ${message}`;
             
             if (type === 'success') {
                 setTimeout(() => hideAlert(page), 5000);

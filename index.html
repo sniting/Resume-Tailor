@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Tailoring Assistant - Enhanced Edition</title>
+    <title>AI Resume Tailoring Assistant - Enhanced Editor</title>
     <style>
         * {
             margin: 0;
@@ -18,8 +18,48 @@
             padding: 20px;
         }
         
+        /* Page Navigation */
+        .page-nav {
+            max-width: 1200px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .nav-btn.active {
+            background: white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        /* Page Containers */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -46,16 +86,6 @@
             font-size: 1.1em;
         }
         
-        .debug-banner {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            text-align: center;
-            color: #856404;
-        }
-        
         .section {
             margin-bottom: 30px;
             padding: 25px;
@@ -73,15 +103,6 @@
             gap: 10px;
         }
         
-        .section h3 {
-            color: #555;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -92,8 +113,7 @@
         input[type="text"],
         input[type="email"],
         input[type="tel"],
-        textarea,
-        select {
+        textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
@@ -106,8 +126,7 @@
         input[type="text"]:focus,
         input[type="email"]:focus,
         input[type="tel"]:focus,
-        textarea:focus,
-        select:focus {
+        textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -115,11 +134,7 @@
         
         textarea {
             resize: vertical;
-            min-height: 100px;
-        }
-        
-        .textarea-small {
-            min-height: 60px;
+            min-height: 150px;
         }
         
         .file-upload {
@@ -200,46 +215,6 @@
         
         .btn-save:hover {
             background: #218838;
-        }
-        
-        .btn-add {
-            background: #17a2b8;
-            color: white;
-            padding: 8px 16px;
-            font-size: 0.9em;
-        }
-        
-        .btn-add:hover {
-            background: #138496;
-        }
-        
-        .btn-remove {
-            background: #dc3545;
-            color: white;
-            padding: 6px 12px;
-            font-size: 0.85em;
-        }
-        
-        .btn-remove:hover {
-            background: #c82333;
-        }
-        
-        .btn-test {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .btn-test:hover {
-            background: #138496;
-        }
-        
-        .btn-debug {
-            background: #6f42c1;
-            color: white;
-        }
-        
-        .btn-debug:hover {
-            background: #5a2d9c;
         }
         
         .action-buttons {
@@ -323,113 +298,160 @@
             opacity: 1;
         }
         
-        .debug-console {
-            background: #000;
-            color: #0f0;
-            padding: 15px;
+        /* Enhanced Editor Styles for Better PDF Display */
+        #resumeEditor {
+            width: 100%;
+            min-height: 700px;
+            font-family: 'Courier New', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 20px;
-            display: none;
+            background-color: #ffffff;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            tab-size: 4;
+            -moz-tab-size: 4;
         }
         
-        .debug-line {
+        #resumeEditor:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        /* Formatting toolbar */
+        .editor-toolbar {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px 8px 0 0;
+            padding: 10px;
+            margin-bottom: -2px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-btn {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        
+        .toolbar-btn:hover {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+        
+        .format-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .format-info h3 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .format-info ul {
+            margin-left: 20px;
+            color: #856404;
+        }
+        
+        .format-info li {
             margin-bottom: 5px;
         }
         
-        /* Tab Styles */
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e0e0e0;
+        .format-info code {
+            background: #f8f9fa;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
         }
         
-        .tab {
-            padding: 10px 20px;
-            background: none;
-            border: none;
-            border-bottom: 3px solid transparent;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 500;
-            color: #666;
-            transition: all 0.3s;
-        }
-        
-        .tab:hover {
-            color: #667eea;
-        }
-        
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Dynamic Entry Styles */
-        .entry-container {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background: white;
-        }
-        
-        .entry-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .bullet-list {
-            margin-left: 20px;
-        }
-        
-        .bullet-item {
+        /* Format helper buttons */
+        .format-helpers {
             display: flex;
             gap: 10px;
             margin-bottom: 10px;
-            align-items: flex-start;
+            flex-wrap: wrap;
         }
         
-        .bullet-number {
-            color: #666;
-            font-weight: bold;
-            margin-top: 12px;
-        }
-        
-        .skill-categories {
-            display: grid;
-            gap: 15px;
-        }
-        
-        .skill-category-item {
-            display: grid;
-            grid-template-columns: 200px 1fr;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .status-info {
-            background: #e3f2fd;
-            border: 1px solid #90caf9;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .format-helper-btn {
+            padding: 8px 16px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
             font-size: 0.9em;
-            color: #1565c0;
+            transition: all 0.2s;
+        }
+        
+        .format-helper-btn:hover {
+            background: #138496;
+        }
+        
+        .format-helper-btn.primary {
+            background: #dc3545;
+            font-weight: bold;
+        }
+        
+        .format-helper-btn.primary:hover {
+            background: #c82333;
+        }
+        
+        /* Split view for PDF preview */
+        .split-view {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: 700px;
+        }
+        
+        .pdf-preview {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: auto;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .pdf-preview h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        #pdfContent {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 1024px) {
+            .split-view {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .pdf-preview {
+                height: 300px;
+            }
         }
         
         @media (max-width: 768px) {
@@ -453,60 +475,50 @@
                 width: 100%;
                 justify-content: center;
             }
-            
-            .skill-category-item {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎯 AI Resume Tailoring Assistant</h1>
-            <p class="subtitle">Transform your resume for any job in seconds</p>
-        </div>
-        
-        <div class="debug-banner">
-            ⚠️ DEBUG MODE ENABLED - Enhanced error detection active
-        </div>
-        
-        <div class="status-info">
-            <strong>System Status:</strong> 
-            <span id="systemStatus">Checking connection...</span> | 
-            <strong>Location:</strong> <span id="pageLocation"></span>
-        </div>
-        
-        <div id="alert" class="alert"></div>
-        
-        <!-- Personal Information Section -->
-        <div class="section">
-            <h2>
-                <span>👤</span>
-                Your Information
-                <span class="saved-indicator" id="savedIndicator">✓ Saved</span>
-            </h2>
-            <div class="info-grid">
-                <input type="text" id="userName" placeholder="Full Name" onblur="saveUserInfo()">
-                <input type="text" id="userLocation" placeholder="City, State" onblur="saveUserInfo()">
-                <input type="tel" id="userPhone" placeholder="Phone Number" onblur="saveUserInfo()">
-                <input type="email" id="userEmail" placeholder="Email Address" onblur="saveUserInfo()">
-                <input type="text" id="userLinkedin" placeholder="LinkedIn URL" onblur="saveUserInfo()">
-            </div>
-            <button class="btn btn-save" onclick="saveUserInfo(true)">💾 Save Information</button>
-        </div>
-        
-        <!-- Resume Input Section with Tabs -->
-        <div class="section">
-            <h2><span>📄</span> Your Master Resume</h2>
-            
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('upload')">📁 Upload/Paste Resume</button>
-                <button class="tab" onclick="switchTab('manual')">✏️ Manual Entry</button>
+    <!-- Page Navigation -->
+    <div class="page-nav">
+        <button class="nav-btn active" onclick="showPage('ai-page')">
+            🤖 AI-Powered Resume
+        </button>
+        <button class="nav-btn" onclick="showPage('edit-page')">
+            ✏️ Edit & Finalize
+        </button>
+    </div>
+    
+    <!-- AI-Powered Page (Page 1) -->
+    <div id="ai-page" class="page active">
+        <div class="container">
+            <div class="header">
+                <h1>🎯 AI Resume Tailoring Assistant</h1>
+                <p class="subtitle">Transform your resume for any job in seconds</p>
             </div>
             
-            <!-- Upload Tab Content -->
-            <div id="uploadTab" class="tab-content active">
+            <div id="alert-ai" class="alert"></div>
+            
+            <!-- Personal Information Section -->
+            <div class="section">
+                <h2>
+                    <span>👤</span>
+                    Your Information
+                    <span class="saved-indicator" id="savedIndicator">✓ Saved</span>
+                </h2>
+                <div class="info-grid">
+                    <input type="text" id="userName" placeholder="Full Name" onblur="saveUserInfo()">
+                    <input type="text" id="userLocation" placeholder="City, State" onblur="saveUserInfo()">
+                    <input type="tel" id="userPhone" placeholder="Phone Number" onblur="saveUserInfo()">
+                    <input type="email" id="userEmail" placeholder="Email Address" onblur="saveUserInfo()">
+                    <input type="text" id="userLinkedin" placeholder="LinkedIn URL" onblur="saveUserInfo()">
+                </div>
+                <button class="btn btn-save" onclick="saveUserInfo(true)">💾 Save Information</button>
+            </div>
+            
+            <!-- Resume Upload Section -->
+            <div class="section">
+                <h2><span>📄</span> Your Master Resume</h2>
                 <div class="file-upload" id="fileUploadDiv">
                     <input type="file" id="resumeFile" accept=".docx,.txt" onchange="handleFileUpload(event)">
                     <label class="file-upload-label">
@@ -517,640 +529,166 @@
                 <p class="help-text">Include all your education, experience, projects, and skills</p>
             </div>
             
-            <!-- Manual Entry Tab Content -->
-            <div id="manualTab" class="tab-content">
-                <!-- Education Section -->
-                <h3>🎓 Education</h3>
-                <div class="entry-container">
-                    <div class="info-grid">
-                        <input type="text" id="edu_university" placeholder="University Name">
-                        <input type="text" id="edu_degree" placeholder="Degree (e.g., Master of Science)">
-                        <input type="text" id="edu_major" placeholder="Major/Field">
-                        <input type="text" id="edu_graduation" placeholder="Graduation Date">
-                    </div>
-                    <textarea id="edu_coursework" class="textarea-small" placeholder="Relevant Coursework (comma-separated)"></textarea>
-                </div>
-                
-                <div class="entry-container">
-                    <h4>Previous Education (if applicable)</h4>
-                    <div class="info-grid">
-                        <input type="text" id="edu_prev_university" placeholder="Previous University">
-                        <input type="text" id="edu_prev_degree" placeholder="Previous Degree">
-                        <input type="text" id="edu_prev_major" placeholder="Previous Major">
-                        <input type="text" id="edu_prev_graduation" placeholder="Previous Graduation Date">
-                    </div>
-                </div>
-                
-                <!-- Skills Section -->
-                <h3>💻 Technical Skills (4 Categories)</h3>
-                <div class="skill-categories">
-                    <div class="skill-category-item">
-                        <input type="text" id="skill_cat_1" placeholder="Category 1 (e.g., Programming Languages)">
-                        <textarea id="skill_items_1" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
-                    </div>
-                    <div class="skill-category-item">
-                        <input type="text" id="skill_cat_2" placeholder="Category 2">
-                        <textarea id="skill_items_2" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
-                    </div>
-                    <div class="skill-category-item">
-                        <input type="text" id="skill_cat_3" placeholder="Category 3">
-                        <textarea id="skill_items_3" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
-                    </div>
-                    <div class="skill-category-item">
-                        <input type="text" id="skill_cat_4" placeholder="Category 4">
-                        <textarea id="skill_items_4" class="textarea-small" placeholder="Skills (comma-separated)"></textarea>
-                    </div>
-                </div>
-                
-                <!-- Certifications -->
-                <h3>🏆 Certifications (Optional)</h3>
-                <textarea id="certifications" class="textarea-small" placeholder="List your certifications (comma-separated)"></textarea>
-                
-                <!-- Experience Section -->
-                <h3>💼 Professional Experience</h3>
-                <div id="experienceEntries"></div>
-                <button class="btn btn-add" onclick="addExperience()">+ Add Experience</button>
-                
-                <!-- Projects Section -->
-                <h3>🚀 Projects</h3>
-                <div id="projectEntries"></div>
-                <button class="btn btn-add" onclick="addProject()">+ Add Project</button>
-                
-                <div style="margin-top: 20px;">
-                    <button class="btn btn-save" onclick="saveManualData()">💾 Save All Resume Data</button>
-                    <span class="saved-indicator" id="manualSavedIndicator">✓ Saved</span>
-                </div>
+            <!-- Job Description Section -->
+            <div class="section">
+                <h2><span>💼</span> Target Job Description</h2>
+                <textarea id="jobDescription" placeholder="Paste the complete job description here..."></textarea>
+                <p class="help-text">Include all requirements, responsibilities, and qualifications</p>
             </div>
-        </div>
-        
-        <!-- Job Description Section -->
-        <div class="section">
-            <h2><span>💼</span> Target Job Description</h2>
-            <textarea id="jobDescription" placeholder="Paste the complete job description here..."></textarea>
-            <p class="help-text">Include all requirements, responsibilities, and qualifications</p>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button class="btn btn-primary" onclick="tailorResume()">
-                <span>🚀</span> Tailor My Resume
-            </button>
-            <button class="btn btn-test" onclick="testWebhook()">
-                <span>🔧</span> Test Connection
-            </button>
-            <button class="btn btn-debug" onclick="debugWorkflow()">
-                <span>🐛</span> Debug Workflow
-            </button>
-            <button class="btn btn-secondary" onclick="clearForm()">
-                <span>🗑️</span> Clear Form
-            </button>
-        </div>
-        
-        <!-- Loading State -->
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p class="loading-text">AI is tailoring your resume... This may take 30-60 seconds.</p>
-        </div>
-        
-        <!-- Debug Console -->
-        <div class="debug-console" id="debugConsole">
-            <div id="debugOutput"></div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="tailorResume()">
+                    <span>🚀</span> Tailor My Resume
+                </button>
+                <button class="btn btn-secondary" onclick="clearForm()">
+                    <span>🗑️</span> Clear Form
+                </button>
+            </div>
+            
+            <!-- Loading State -->
+            <div class="loading" id="loading-ai">
+                <div class="spinner"></div>
+                <p class="loading-text">AI is tailoring your resume... This may take 30-60 seconds.</p>
+            </div>
         </div>
     </div>
     
+    <!-- Edit & Finalize Page (Page 2) - ENHANCED -->
+    <div id="edit-page" class="page">
+        <div class="container">
+            <div class="header">
+                <h1>✏️ Edit & Finalize Resume</h1>
+                <p class="subtitle">Upload your tailored resume PDF and make final adjustments</p>
+            </div>
+            
+            <div id="alert-edit" class="alert"></div>
+            
+            <!-- PDF Upload Section -->
+            <div class="section">
+                <h2><span>📋</span> Upload Tailored Resume</h2>
+                <div class="file-upload" id="pdfUploadDiv">
+                    <input type="file" id="pdfFile" accept=".pdf" onchange="handlePdfUpload(event)">
+                    <label class="file-upload-label">
+                        <span id="pdfLabel">📁 Click to upload your tailored resume PDF</span>
+                    </label>
+                </div>
+                <p class="help-text">Upload the PDF generated from the AI-powered resume page</p>
+            </div>
+            
+            <!-- Format Information -->
+            <div class="format-info" id="formatInfo" style="display: none;">
+                <h3>⚠️ CRITICAL: Format Requirements for Proper Parsing</h3>
+                <ul>
+                    <li><strong>Dates MUST have double spaces before them:</strong> <code>University Name  December 2025</code></li>
+                    <li><strong>Education format:</strong> University name with double space before graduation date on first line, degree on second line</li>
+                    <li><strong>Experience format:</strong> Company name with comma and location on first line, position with double space before date range on second line</li>
+                    <li><strong>Project format:</strong> Project title with double space before date range</li>
+                    <li><strong>Skills format:</strong> Category name followed by colon and items</li>
+                    <li><strong style="color: #d73a49;">IMPORTANT - Bullet points:</strong> Each bullet must be on a SINGLE LINE. Multi-line bullets will be broken. Click "Merge Multi-line Bullets" to fix this automatically!</li>
+                </ul>
+            </div>
+            
+            <!-- Format Helper Buttons -->
+            <div id="formatHelpers" style="display: none;">
+                <div class="section">
+                    <h2><span>🔧</span> Quick Format Helpers</h2>
+                    <div class="format-helpers">
+                        <button class="format-helper-btn" onclick="autoFormatResume()">🎯 Auto-Format for Parser</button>
+                        <button class="format-helper-btn primary" onclick="mergeBulletPoints()">🔗 Merge Multi-line Bullets</button>
+                        <button class="format-helper-btn" onclick="fixDateSpacing()">📅 Fix Date Spacing</button>
+                        <button class="format-helper-btn" onclick="validateFormat()">✅ Validate Format</button>
+                        <button class="format-helper-btn" onclick="showFormatExample()">📋 Show Format Example</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Enhanced Editor Section -->
+            <div id="simpleEditor" style="display: none;">
+                <div class="section">
+                    <h2><span>✏️</span> Edit Resume Content</h2>
+                    
+                    <!-- Editor Toolbar -->
+                    <div class="editor-toolbar">
+                        <button class="toolbar-btn" onclick="addBullet()">• Add Bullet</button>
+                        <button class="toolbar-btn" onclick="addSection()">+ Add Section</button>
+                        <button class="toolbar-btn" onclick="formatSelection('upper')">↑ UPPERCASE</button>
+                        <button class="toolbar-btn" onclick="formatSelection('title')">Aa Title Case</button>
+                        <button class="toolbar-btn" onclick="insertDate()">📅 Insert Date</button>
+                        <button class="toolbar-btn" onclick="cleanFormatting()">🧹 Clean Format</button>
+                    </div>
+                    
+                    <!-- Main Editor -->
+                    <textarea id="resumeEditor" 
+                              placeholder="Your resume content will appear here exactly as it is in the PDF..."
+                              spellcheck="true"></textarea>
+                    
+                    <p class="help-text" style="margin-top: 10px;">
+                        💡 <strong>Important:</strong> Click the red "Merge Multi-line Bullets" button above to fix broken bullet points! This ensures each bullet is on a single line as required by the parser.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-primary" onclick="generateFinalResume()" style="display: none;" id="generateFinalBtn">
+                    <span>📄</span> Generate Final Resume
+                </button>
+                <button class="btn btn-secondary" onclick="clearEditForm()">
+                    <span>🗑️</span> Clear All
+                </button>
+            </div>
+            
+            <!-- Loading State -->
+            <div class="loading" id="loading-edit">
+                <div class="spinner"></div>
+                <p class="loading-text">Generating your final resume...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include PDF.js for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <!-- Mammoth.js for DOCX parsing -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
     
     <script>
-        // Webhook URL
-        const WEBHOOK_URL = 'https://sngsng.app.n8n.cloud/webhook/create-resume';
+        // Set PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js';
         
-        // Debug mode
-        let debugMode = true;
+        // Webhook URLs
+        const AI_WEBHOOK_URL = 'https://sngsng.app.n8n.cloud/webhook/create-resume';
+        const EDIT_WEBHOOK_URL = 'https://sngsng.app.n8n.cloud/webhook/manual-resume';
         
-        // Load user info and manual data on page load
+        // Page switching
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (pageId === 'ai-page') {
+                document.querySelectorAll('.nav-btn')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.nav-btn')[1].classList.add('active');
+            }
+        }
+        
+        // Load user info on page load
         window.addEventListener('DOMContentLoaded', function() {
-            // Display page location
-            document.getElementById('pageLocation').textContent = window.location.hostname;
-            
-            // Check system status
-            checkSystemStatus();
-            
             loadUserInfo();
-            loadManualData();
-            // Add default entries if none exist
-            if (document.getElementById('experienceEntries').children.length === 0) {
-                addExperience();
-                addExperience();
-            }
-            if (document.getElementById('projectEntries').children.length === 0) {
-                addProject();
-                addProject();
-                addProject();
-            }
-            log('Page loaded - Debug mode enabled');
-            log('Running from: ' + window.location.origin);
         });
         
-        // Check system status
-        async function checkSystemStatus() {
-            try {
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'OPTIONS',
-                    headers: {
-                        'Origin': window.location.origin
-                    }
-                });
-                
-                if (response.ok || response.status === 404) {
-                    document.getElementById('systemStatus').textContent = '✅ Webhook reachable';
-                    document.getElementById('systemStatus').style.color = '#2e7d32';
-                } else {
-                    document.getElementById('systemStatus').textContent = '⚠️ Webhook may have issues';
-                    document.getElementById('systemStatus').style.color = '#f57c00';
-                }
-            } catch (error) {
-                document.getElementById('systemStatus').textContent = '❌ Cannot reach webhook';
-                document.getElementById('systemStatus').style.color = '#d32f2f';
-                log('System check error: ' + error.message, 'error');
-            }
-        }
-        
-        // Debug logging
-        function log(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const debugOutput = document.getElementById('debugOutput');
-            const debugConsole = document.getElementById('debugConsole');
-            
-            // Show debug console
-            debugConsole.style.display = 'block';
-            
-            // Add to debug output
-            const line = document.createElement('div');
-            line.className = 'debug-line';
-            line.textContent = `[${timestamp}] ${type.toUpperCase()}: ${message}`;
-            debugOutput.appendChild(line);
-            
-            // Also log to browser console
-            console.log(`[${type}]`, message);
-            
-            // Auto scroll
-            debugConsole.scrollTop = debugConsole.scrollHeight;
-        }
-        
-        // Debug workflow function
-        async function debugWorkflow() {
-            log('Starting workflow debug...');
-            showAlert('Running comprehensive workflow diagnostics...', 'info');
-            
-            try {
-                // Test 1: Basic connectivity
-                log('Test 1: Basic connectivity check');
-                const basicTest = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/html,application/json,*/*',
-                        'Origin': window.location.origin
-                    },
-                    body: JSON.stringify({
-                        action: 'debug',
-                        test: 'basic'
-                    })
-                });
-                
-                log(`Basic test status: ${basicTest.status}`);
-                const basicHeaders = {};
-                basicTest.headers.forEach((value, key) => {
-                    basicHeaders[key] = value;
-                });
-                log(`Response headers: ${JSON.stringify(basicHeaders)}`);
-                
-                // Test 2: Minimal data test
-                log('Test 2: Minimal data test');
-                const minimalData = {
-                    action: 'test',
-                    data: {
-                        resumeContent: 'Test resume',
-                        jobDescription: 'Test job',
-                        name: 'Test',
-                        location: 'Test',
-                        phone: '123',
-                        email: 'test@test.com',
-                        linkedin: 'test'
-                    }
-                };
-                
-                const minimalTest = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/html,application/json,*/*'
-                    },
-                    body: JSON.stringify(minimalData)
-                });
-                
-                const minimalResponse = await minimalTest.text();
-                log(`Minimal test response length: ${minimalResponse.length}`);
-                log(`Response type: ${minimalTest.headers.get('content-type')}`);
-                
-                if (minimalResponse.length === 0) {
-                    log('ERROR: Workflow returns empty response!', 'error');
-                    log('Possible causes:', 'error');
-                    log('1. Workflow execution failed', 'error');
-                    log('2. Response node not reached', 'error');
-                    log('3. HTML generation failed', 'error');
-                    
-                    showAlert('Workflow is returning empty responses. Check n8n workflow logs.', 'error');
-                } else if (minimalResponse.includes('<!DOCTYPE html>')) {
-                    log('SUCCESS: Workflow returns HTML correctly', 'success');
-                    showAlert('Workflow debug successful! Everything appears to be working.', 'success');
-                } else {
-                    log('WARNING: Response is not HTML', 'warning');
-                    log(`Response preview: ${minimalResponse.substring(0, 200)}`, 'warning');
-                    showAlert('Workflow returns data but not in expected HTML format.', 'error');
-                }
-                
-            } catch (error) {
-                log(`Debug error: ${error.message}`, 'error');
-                showAlert('Debug failed: ' + error.message, 'error');
-            }
-        }
-        
-        // Switch tabs
-        function switchTab(tabName) {
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            event.target.classList.add('active');
-            
-            // Update tab content
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            if (tabName === 'upload') {
-                document.getElementById('uploadTab').classList.add('active');
-            } else {
-                document.getElementById('manualTab').classList.add('active');
-            }
-            
-            log(`Switched to ${tabName} tab`);
-        }
-        
-        // Add Experience Entry
-        let experienceCount = 0;
-        function addExperience() {
-            const container = document.getElementById('experienceEntries');
-            const id = `exp_${experienceCount++}`;
-            
-            const entry = document.createElement('div');
-            entry.className = 'entry-container';
-            entry.id = id;
-            
-            entry.innerHTML = `
-                <div class="entry-header">
-                    <h4>Experience ${experienceCount}</h4>
-                    <button class="btn btn-remove" onclick="removeEntry('${id}')">Remove</button>
-                </div>
-                <div class="info-grid">
-                    <input type="text" id="${id}_company" placeholder="Company Name">
-                    <input type="text" id="${id}_location" placeholder="Location">
-                    <input type="text" id="${id}_position" placeholder="Position/Title">
-                    <input type="text" id="${id}_dates" placeholder="Dates (e.g., Jan 2020 - Dec 2022)">
-                </div>
-                <div class="bullet-list">
-                    ${experienceCount === 1 ? 
-                        [1,2,3,4,5].map(i => `
-                            <div class="bullet-item">
-                                <span class="bullet-number">${i}.</span>
-                                <textarea id="${id}_bullet_${i}" class="textarea-small" placeholder="Bullet point ${i} (35-50 words)"></textarea>
-                            </div>
-                        `).join('') :
-                        [1,2,3,4].map(i => `
-                            <div class="bullet-item">
-                                <span class="bullet-number">${i}.</span>
-                                <textarea id="${id}_bullet_${i}" class="textarea-small" placeholder="Bullet point ${i} (35-50 words)"></textarea>
-                            </div>
-                        `).join('')
-                    }
-                </div>
-            `;
-            
-            container.appendChild(entry);
-            log(`Added experience entry ${experienceCount}`);
-        }
-        
-        // Add Project Entry
-        let projectCount = 0;
-        function addProject() {
-            const container = document.getElementById('projectEntries');
-            const id = `proj_${projectCount++}`;
-            
-            const entry = document.createElement('div');
-            entry.className = 'entry-container';
-            entry.id = id;
-            
-            entry.innerHTML = `
-                <div class="entry-header">
-                    <h4>Project ${projectCount}</h4>
-                    <button class="btn btn-remove" onclick="removeEntry('${id}')">Remove</button>
-                </div>
-                <div class="info-grid">
-                    <input type="text" id="${id}_title" placeholder="Project Title">
-                    <input type="text" id="${id}_dates" placeholder="Dates (e.g., Jan 2023 - Mar 2023)">
-                </div>
-                <div class="bullet-list">
-                    ${[1,2,3].map(i => `
-                        <div class="bullet-item">
-                            <span class="bullet-number">${i}.</span>
-                            <textarea id="${id}_bullet_${i}" class="textarea-small" placeholder="Bullet point ${i} (35-50 words)"></textarea>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            container.appendChild(entry);
-            log(`Added project entry ${projectCount}`);
-        }
-        
-        // Remove Entry
-        function removeEntry(id) {
-            const entry = document.getElementById(id);
-            if (entry) {
-                entry.remove();
-                log(`Removed entry ${id}`);
-            }
-        }
-        
-        // Save Manual Data
-        function saveManualData() {
-            const manualData = {
-                education: {
-                    university: document.getElementById('edu_university').value,
-                    degree: document.getElementById('edu_degree').value,
-                    major: document.getElementById('edu_major').value,
-                    graduation: document.getElementById('edu_graduation').value,
-                    coursework: document.getElementById('edu_coursework').value,
-                    previous: {
-                        university: document.getElementById('edu_prev_university').value,
-                        degree: document.getElementById('edu_prev_degree').value,
-                        major: document.getElementById('edu_prev_major').value,
-                        graduation: document.getElementById('edu_prev_graduation').value
-                    }
-                },
-                skills: [
-                    { category: document.getElementById('skill_cat_1').value, items: document.getElementById('skill_items_1').value },
-                    { category: document.getElementById('skill_cat_2').value, items: document.getElementById('skill_items_2').value },
-                    { category: document.getElementById('skill_cat_3').value, items: document.getElementById('skill_items_3').value },
-                    { category: document.getElementById('skill_cat_4').value, items: document.getElementById('skill_items_4').value }
-                ],
-                certifications: document.getElementById('certifications').value,
-                experiences: [],
-                projects: []
-            };
-            
-            // Collect experiences
-            document.querySelectorAll('[id^="exp_"]').forEach(exp => {
-                if (exp.className === 'entry-container') {
-                    const id = exp.id;
-                    const bulletCount = id === 'exp_0' ? 5 : 4;
-                    const bullets = [];
-                    
-                    for (let i = 1; i <= bulletCount; i++) {
-                        const bullet = document.getElementById(`${id}_bullet_${i}`)?.value;
-                        if (bullet) bullets.push(bullet);
-                    }
-                    
-                    if (document.getElementById(`${id}_company`)?.value) {
-                        manualData.experiences.push({
-                            company: document.getElementById(`${id}_company`).value,
-                            location: document.getElementById(`${id}_location`).value,
-                            position: document.getElementById(`${id}_position`).value,
-                            dates: document.getElementById(`${id}_dates`).value,
-                            bullets: bullets
-                        });
-                    }
-                }
-            });
-            
-            // Collect projects
-            document.querySelectorAll('[id^="proj_"]').forEach(proj => {
-                if (proj.className === 'entry-container') {
-                    const id = proj.id;
-                    const bullets = [];
-                    
-                    for (let i = 1; i <= 3; i++) {
-                        const bullet = document.getElementById(`${id}_bullet_${i}`)?.value;
-                        if (bullet) bullets.push(bullet);
-                    }
-                    
-                    if (document.getElementById(`${id}_title`)?.value) {
-                        manualData.projects.push({
-                            title: document.getElementById(`${id}_title`).value,
-                            dates: document.getElementById(`${id}_dates`).value,
-                            bullets: bullets
-                        });
-                    }
-                }
-            });
-            
-            // Save to localStorage
-            localStorage.setItem('manualResumeData', JSON.stringify(manualData));
-            
-            // Show saved indicator
-            const indicator = document.getElementById('manualSavedIndicator');
-            indicator.classList.add('show');
-            setTimeout(() => indicator.classList.remove('show'), 2000);
-            
-            showAlert('Resume data saved successfully!', 'success');
-            log('Manual resume data saved to localStorage');
-        }
-        
-        // Load Manual Data
-        function loadManualData() {
-            const savedData = localStorage.getItem('manualResumeData');
-            if (!savedData) return;
-            
-            try {
-                const data = JSON.parse(savedData);
-                
-                // Load education
-                if (data.education) {
-                    document.getElementById('edu_university').value = data.education.university || '';
-                    document.getElementById('edu_degree').value = data.education.degree || '';
-                    document.getElementById('edu_major').value = data.education.major || '';
-                    document.getElementById('edu_graduation').value = data.education.graduation || '';
-                    document.getElementById('edu_coursework').value = data.education.coursework || '';
-                    
-                    if (data.education.previous) {
-                        document.getElementById('edu_prev_university').value = data.education.previous.university || '';
-                        document.getElementById('edu_prev_degree').value = data.education.previous.degree || '';
-                        document.getElementById('edu_prev_major').value = data.education.previous.major || '';
-                        document.getElementById('edu_prev_graduation').value = data.education.previous.graduation || '';
-                    }
-                }
-                
-                // Load skills
-                if (data.skills) {
-                    data.skills.forEach((skill, index) => {
-                        if (index < 4) {
-                            document.getElementById(`skill_cat_${index + 1}`).value = skill.category || '';
-                            document.getElementById(`skill_items_${index + 1}`).value = skill.items || '';
-                        }
-                    });
-                }
-                
-                // Load certifications
-                document.getElementById('certifications').value = data.certifications || '';
-                
-                log('Manual resume data loaded from localStorage');
-            } catch (error) {
-                log('Error loading manual data: ' + error.message, 'error');
-            }
-        }
-        
-        // Convert manual data to resume text format
-        function convertManualDataToText() {
-            const savedData = localStorage.getItem('manualResumeData');
-            if (!savedData) return '';
-            
-            try {
-                const data = JSON.parse(savedData);
-                let resumeText = '';
-                
-                // Education
-                if (data.education) {
-                    resumeText += 'EDUCATION\n';
-                    resumeText += `${data.education.university || ''}\n`;
-                    resumeText += `${data.education.degree || ''} in ${data.education.major || ''}\n`;
-                    resumeText += `${data.education.graduation || ''}\n`;
-                    if (data.education.coursework) {
-                        resumeText += `Relevant Coursework: ${data.education.coursework}\n`;
-                    }
-                    
-                    if (data.education.previous && data.education.previous.university) {
-                        resumeText += `\n${data.education.previous.university}\n`;
-                        resumeText += `${data.education.previous.degree} in ${data.education.previous.major}\n`;
-                        resumeText += `${data.education.previous.graduation}\n`;
-                    }
-                    resumeText += '\n';
-                }
-                
-                // Skills
-                if (data.skills && data.skills.some(s => s.category)) {
-                    resumeText += 'TECHNICAL SKILLS\n';
-                    data.skills.forEach(skill => {
-                        if (skill.category && skill.items) {
-                            resumeText += `${skill.category}: ${skill.items}\n`;
-                        }
-                    });
-                    if (data.certifications) {
-                        resumeText += `Certifications: ${data.certifications}\n`;
-                    }
-                    resumeText += '\n';
-                }
-                
-                // Experience
-                if (data.experiences && data.experiences.length > 0) {
-                    resumeText += 'PROFESSIONAL EXPERIENCE\n';
-                    data.experiences.forEach(exp => {
-                        resumeText += `${exp.company}, ${exp.location}\n`;
-                        resumeText += `${exp.position} | ${exp.dates}\n`;
-                        exp.bullets.forEach(bullet => {
-                            resumeText += `• ${bullet}\n`;
-                        });
-                        resumeText += '\n';
-                    });
-                }
-                
-                // Projects
-                if (data.projects && data.projects.length > 0) {
-                    resumeText += 'PROJECTS\n';
-                    data.projects.forEach(proj => {
-                        resumeText += `${proj.title} | ${proj.dates}\n`;
-                        proj.bullets.forEach(bullet => {
-                            resumeText += `• ${bullet}\n`;
-                        });
-                        resumeText += '\n';
-                    });
-                }
-                
-                return resumeText;
-            } catch (error) {
-                log('Error converting manual data: ' + error.message, 'error');
-                return '';
-            }
-        }
-        
-        // Test webhook connection
-        async function testWebhook() {
-            log('Testing webhook connection...');
-            showAlert('Testing connection to webhook...', 'info');
-            
-            try {
-                const testData = {
-                    action: 'test',
-                    data: {
-                        resumeContent: 'Test resume content',
-                        jobDescription: 'Test job description',
-                        name: 'Test User',
-                        location: 'Test City',
-                        phone: '1234567890',
-                        email: 'test@example.com',
-                        linkedin: 'linkedin.com/test'
-                    }
-                };
-                
-                log(`Sending test request from: ${window.location.origin}`);
-                log(`Request data: ${JSON.stringify(testData).substring(0, 200)}...`);
-                
-                const response = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/html,application/json,*/*',
-                        'Origin': window.location.origin
-                    },
-                    body: JSON.stringify(testData)
-                });
-                
-                log(`Response status: ${response.status}`);
-                const responseHeaders = {};
-                response.headers.forEach((value, key) => {
-                    responseHeaders[key] = value;
-                });
-                log(`Response headers: ${JSON.stringify(responseHeaders)}`);
-                
-                const responseText = await response.text();
-                log(`Response body length: ${responseText.length}`);
-                log(`Response preview: ${responseText.substring(0, 500)}...`);
-                
-                if (response.ok) {
-                    if (responseText.length === 0) {
-                        showAlert('Connection successful but response is empty. Check workflow execution.', 'error');
-                        log('ERROR: Empty response from webhook', 'error');
-                    } else if (responseText.includes('<!DOCTYPE html>') || responseText.includes('<html')) {
-                        showAlert('Connection successful! Webhook is working and returning HTML.', 'success');
-                        log('Webhook test successful - HTML response received', 'success');
-                    } else {
-                        showAlert('Connection successful but response is not HTML. Check workflow.', 'error');
-                        log('Webhook returned non-HTML response', 'error');
-                    }
-                } else {
-                    showAlert(`Connection failed! Status: ${response.status}`, 'error');
-                    log(`Webhook test failed with status ${response.status}`, 'error');
-                }
-            } catch (error) {
-                showAlert('Connection error: ' + error.message, 'error');
-                log(`Connection error: ${error.message}`, 'error');
-                log(`Error stack: ${error.stack}`, 'error');
-            }
-        }
-        
         // Save user information to localStorage
-        function saveUserInfo(showAlertMessage = false) {
+        function saveUserInfo(showAlert = false) {
             const fields = {
                 userName: document.getElementById('userName').value,
                 userLocation: document.getElementById('userLocation').value,
@@ -1170,11 +708,9 @@
             indicator.classList.add('show');
             setTimeout(() => indicator.classList.remove('show'), 2000);
             
-            if (showAlertMessage) {
-                showAlert('Your information has been saved!', 'success');
+            if (showAlert) {
+                showAlert('Your information has been saved!', 'success', 'ai');
             }
-            
-            log('User information saved to localStorage');
         }
         
         // Load user information from localStorage
@@ -1186,15 +722,12 @@
                     document.getElementById(field).value = value;
                 }
             });
-            log('User information loaded from localStorage');
         }
         
-        // Handle file upload
+        // Handle file upload for AI page
         async function handleFileUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
-            log(`File selected: ${file.name} (${file.size} bytes)`);
             
             const fileType = file.name.split('.').pop().toLowerCase();
             const fileUploadDiv = document.getElementById('fileUploadDiv');
@@ -1207,47 +740,26 @@
                     document.getElementById('resumeContent').value = result.value;
                     fileUploadDiv.classList.add('has-file');
                     fileLabel.textContent = `✅ ${file.name} uploaded successfully`;
-                    showAlert('Resume uploaded successfully!', 'success');
-                    log(`DOCX file processed successfully. Content length: ${result.value.length}`, 'success');
+                    showAlert('Resume uploaded successfully!', 'success', 'ai');
                 } else if (fileType === 'txt') {
                     const text = await file.text();
                     document.getElementById('resumeContent').value = text;
                     fileUploadDiv.classList.add('has-file');
                     fileLabel.textContent = `✅ ${file.name} uploaded successfully`;
-                    showAlert('Resume uploaded successfully!', 'success');
-                    log(`TXT file processed successfully. Content length: ${text.length}`, 'success');
+                    showAlert('Resume uploaded successfully!', 'success', 'ai');
                 } else {
-                    showAlert('Please upload a .docx or .txt file', 'error');
-                    log('Invalid file type: ' + fileType, 'error');
+                    showAlert('Please upload a .docx or .txt file', 'error', 'ai');
                 }
             } catch (error) {
-                showAlert('Error reading file: ' + error.message, 'error');
-                log(`File reading error: ${error.message}`, 'error');
-                log(`Error stack: ${error.stack}`, 'error');
+                showAlert('Error reading file: ' + error.message, 'error', 'ai');
             }
         }
         
-        // Tailor resume function
+        // AI-powered resume tailoring
         async function tailorResume() {
-            // Check which tab is active
-            const isManualEntry = document.getElementById('manualTab').classList.contains('active');
-            
-            let resumeContent = '';
-            if (isManualEntry) {
-                // Save manual data first
-                saveManualData();
-                // Convert manual data to text format
-                resumeContent = convertManualDataToText();
-                log('Using manual entry data for resume');
-            } else {
-                // Use uploaded/pasted content
-                resumeContent = document.getElementById('resumeContent').value;
-                log('Using uploaded/pasted resume content');
-            }
-            
+            const resumeContent = document.getElementById('resumeContent').value;
             const jobDescription = document.getElementById('jobDescription').value;
             
-            // Get user info
             const userInfo = {
                 name: document.getElementById('userName').value || 'Your Name',
                 location: document.getElementById('userLocation').value || 'City, State',
@@ -1256,192 +768,679 @@
                 linkedin: document.getElementById('userLinkedin').value || 'linkedin.com/in/profile'
             };
             
-            log('Starting resume tailoring process...');
-            log(`Resume content length: ${resumeContent.length}`);
-            log(`Job description length: ${jobDescription.length}`);
-            log(`User info: ${JSON.stringify(userInfo)}`);
-            log(`Entry method: ${isManualEntry ? 'Manual' : 'Upload/Paste'}`);
-            log(`Request origin: ${window.location.origin}`);
-            
-            // Validate inputs
             if (!resumeContent.trim()) {
-                showAlert('Please provide your resume content', 'error');
-                log('Validation failed: No resume content', 'error');
+                showAlert('Please provide your resume content', 'error', 'ai');
                 return;
             }
             
             if (!jobDescription.trim()) {
-                showAlert('Please provide the job description', 'error');
-                log('Validation failed: No job description', 'error');
+                showAlert('Please provide the job description', 'error', 'ai');
                 return;
             }
             
-            // Show loading
-            document.getElementById('loading').style.display = 'block';
-            hideAlert();
-            
-            const requestBody = {
-                action: 'tailor_resume',
-                data: {
-                    resumeContent: resumeContent,
-                    jobDescription: jobDescription,
-                    ...userInfo
-                }
-            };
-            
-            log(`Request body size: ${JSON.stringify(requestBody).length} bytes`);
+            document.getElementById('loading-ai').style.display = 'block';
+            hideAlert('ai');
             
             try {
-                log('Sending request to webhook...');
-                const startTime = Date.now();
-                
-                // Enhanced fetch with all necessary headers
-                const response = await fetch(WEBHOOK_URL, {
+                const response = await fetch(AI_WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'text/html,application/json,*/*',
-                        'Origin': window.location.origin
+                        'Content-Type': 'application/json'
                     },
-                    mode: 'cors',
-                    body: JSON.stringify(requestBody)
+                    body: JSON.stringify({
+                        action: 'tailor_resume',
+                        data: {
+                            resumeContent: resumeContent,
+                            jobDescription: jobDescription,
+                            ...userInfo
+                        }
+                    })
                 });
-                
-                const responseTime = Date.now() - startTime;
-                log(`Response received in ${responseTime}ms`);
-                log(`Response status: ${response.status}`);
-                log(`Response status text: ${response.statusText}`);
-                
-                // Log all response headers
-                const responseHeaders = {};
-                response.headers.forEach((value, key) => {
-                    responseHeaders[key] = value;
-                });
-                log(`Response headers: ${JSON.stringify(responseHeaders)}`);
-                
-                const responseText = await response.text();
-                log(`Response body length: ${responseText.length}`);
                 
                 if (!response.ok) {
-                    log(`Error response body: ${responseText}`, 'error');
-                    
-                    // Try to parse error HTML if present
-                    if (responseText.includes('<!DOCTYPE html>') && responseText.includes('Error')) {
-                        const errorMatch = responseText.match(/<h1>([^<]+)<\/h1>/);
-                        const errorMessage = errorMatch ? errorMatch[1] : 'Unknown error';
-                        throw new Error(`Server error: ${errorMessage}`);
-                    } else {
-                        throw new Error(`HTTP error! status: ${response.status}, message: ${responseText.substring(0, 200)}`);
-                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 
-                // Check if response is empty
-                if (!responseText || responseText.trim() === '') {
-                    log('ERROR: Response is empty!', 'error');
-                    log('This usually means:', 'error');
-                    log('1. The workflow executed but failed to generate HTML', 'error');
-                    log('2. The Respond node is not receiving data', 'error');
-                    log('3. There is an error in the workflow logic', 'error');
-                    
-                    // Try debug request
-                    log('Attempting debug request...', 'info');
-                    await debugWorkflow();
-                    
-                    throw new Error('Empty response from server. Check the Debug Workflow results above.');
-                }
+                const html = await response.text();
+                document.getElementById('loading-ai').style.display = 'none';
                 
-                // Check if response is actually HTML
-                if (!responseText.includes('<!DOCTYPE html>') && !responseText.includes('<html')) {
-                    log('Response does not appear to be HTML', 'error');
-                    log(`Response content-type: ${response.headers.get('content-type')}`, 'error');
-                    log(`Response preview: ${responseText.substring(0, 500)}...`, 'error');
-                    throw new Error('Invalid response format - not HTML. The workflow may have encountered an error.');
-                }
-                
-                // Hide loading
-                document.getElementById('loading').style.display = 'none';
-                
-                // Success - open result
-                log('Resume generation successful!', 'success');
-                
-                // Open result in new window
                 const resultWindow = window.open('', '_blank');
                 if (resultWindow) {
-                    resultWindow.document.write(responseText);
+                    resultWindow.document.write(html);
                     resultWindow.document.close();
-                    showAlert('Resume tailored successfully! Check the new window.', 'success');
-                    log('Resume opened in new window successfully', 'success');
+                    showAlert('Resume tailored successfully! Check the new window.', 'success', 'ai');
                 } else {
-                    showAlert('Pop-up blocked! Please allow pop-ups for this site.', 'error');
-                    log('Pop-up blocked by browser', 'error');
-                    
-                    // Offer to download as alternative
-                    const blob = new Blob([responseText], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'tailored-resume.html';
-                    a.click();
-                    URL.revokeObjectURL(url);
-                    
-                    showAlert('Pop-up blocked! Resume downloaded as HTML file instead.', 'info');
-                    log('Resume downloaded as HTML file', 'info');
+                    showAlert('Pop-up blocked! Please allow pop-ups for this site.', 'error', 'ai');
                 }
                 
             } catch (error) {
-                document.getElementById('loading').style.display = 'none';
-                showAlert('Error: ' + error.message + '. Check debug console for details.', 'error');
-                log(`Error during resume tailoring: ${error.message}`, 'error');
-                log(`Error stack: ${error.stack}`, 'error');
-                console.error('Full error object:', error);
-                
-                // Suggest checking n8n logs
-                log('TROUBLESHOOTING STEPS:', 'info');
-                log('1. Check your n8n workflow execution history', 'info');
-                log('2. Look for any failed executions or errors', 'info');
-                log('3. Ensure all workflow nodes are properly connected', 'info');
-                log('4. Verify your OpenAI API key is valid and has credits', 'info');
-                log('5. Check if the webhook URL is correct', 'info');
+                document.getElementById('loading-ai').style.display = 'none';
+                showAlert('Error: ' + error.message, 'error', 'ai');
             }
         }
         
-        // Clear form
+        // Clear AI form
         function clearForm() {
-            const confirmClear = confirm('Are you sure you want to clear all form data? This will not affect your saved information.');
-            if (!confirmClear) return;
-            
             document.getElementById('resumeContent').value = '';
             document.getElementById('jobDescription').value = '';
             document.getElementById('resumeFile').value = '';
             document.getElementById('fileUploadDiv').classList.remove('has-file');
             document.getElementById('fileLabel').textContent = '📁 Click to upload resume (.docx or .txt)';
+            showAlert('Form cleared!', 'success', 'ai');
+        }
+        
+        // Enhanced PDF Upload Handler with Better Text Extraction
+        async function handlePdfUpload(event) {
+            const file = event.target.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                showAlert('Please upload a PDF file', 'error', 'edit');
+                return;
+            }
             
-            // Clear manual entry fields (but not saved data)
-            document.querySelectorAll('#manualTab input[type="text"], #manualTab textarea').forEach(field => {
-                if (!field.id.startsWith('user')) {
-                    field.value = '';
+            const pdfUploadDiv = document.getElementById('pdfUploadDiv');
+            const pdfLabel = document.getElementById('pdfLabel');
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = '';
+                
+                // Extract text from all pages
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
+                    
+                    // Process text items
+                    let pageText = '';
+                    let lastY = null;
+                    
+                    // Sort items by Y position (top to bottom) then X position (left to right)
+                    const sortedItems = textContent.items.sort((a, b) => {
+                        const yDiff = b.transform[5] - a.transform[5];
+                        if (Math.abs(yDiff) > 2) return yDiff;
+                        return a.transform[4] - b.transform[4];
+                    });
+                    
+                    sortedItems.forEach((item, index) => {
+                        const currentY = item.transform[5];
+                        const currentX = item.transform[4];
+                        
+                        // Check if this is a new line
+                        if (lastY !== null && Math.abs(currentY - lastY) > 2) {
+                            pageText += '\n';
+                        }
+                        
+                        // Add the text
+                        pageText += item.str;
+                        
+                        // Check if we need to add space between items on same line
+                        if (index < sortedItems.length - 1) {
+                            const nextItem = sortedItems[index + 1];
+                            const nextY = nextItem.transform[5];
+                            const nextX = nextItem.transform[4];
+                            
+                            // If next item is on same line
+                            if (Math.abs(nextY - currentY) <= 2) {
+                                const gap = nextX - (currentX + item.width);
+                                // Add appropriate spacing
+                                if (gap > 30) {
+                                    pageText += '  '; // Double space for large gaps
+                                } else if (gap > 5) {
+                                    pageText += ' '; // Single space for normal gaps
+                                }
+                            }
+                        }
+                        
+                        lastY = currentY;
+                    });
+                    
+                    fullText += pageText;
+                    
+                    if (pageNum < pdf.numPages) {
+                        fullText += '\n\n';
+                    }
+                }
+                
+                // Clean up the extracted text
+                fullText = fullText
+                    .replace(/\n{3,}/g, '\n\n') // Remove excessive line breaks
+                    .trim();
+                
+                // Apply auto-formatting to match parser expectations
+                const formattedText = autoFormatExtractedText(fullText);
+                
+                // Display the formatted text in the editor
+                document.getElementById('resumeEditor').value = formattedText;
+                
+                // Show editor section and format info
+                document.getElementById('simpleEditor').style.display = 'block';
+                document.getElementById('formatInfo').style.display = 'block';
+                document.getElementById('formatHelpers').style.display = 'block';
+                document.getElementById('generateFinalBtn').style.display = 'inline-flex';
+                
+                pdfUploadDiv.classList.add('has-file');
+                pdfLabel.textContent = `✅ ${file.name} uploaded successfully`;
+                showAlert('PDF uploaded! Click "Merge Multi-line Bullets" button to fix any broken bullet points, then review the formatting below.', 'success', 'edit');
+                
+                // Auto-focus the editor
+                document.getElementById('resumeEditor').focus();
+                
+            } catch (error) {
+                showAlert('Error reading PDF: ' + error.message, 'error', 'edit');
+                console.error('PDF extraction error:', error);
+            }
+        }
+        
+        // Auto-format extracted text to match parser expectations
+        function autoFormatExtractedText(text) {
+            let lines = text.split('\n');
+            let formatted = [];
+            let inSection = '';
+            let currentBullet = null;
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                let trimmedLine = line.trim();
+                
+                if (!trimmedLine) {
+                    // Empty line - end current bullet if exists
+                    if (currentBullet) {
+                        formatted.push(currentBullet);
+                        currentBullet = null;
+                    }
+                    formatted.push('');
+                    continue;
+                }
+                
+                // Detect sections
+                if (trimmedLine === 'EDUCATION') inSection = 'education';
+                else if (trimmedLine === 'TECHNICAL SKILLS') inSection = 'skills';
+                else if (trimmedLine === 'PROFESSIONAL EXPERIENCE') inSection = 'experience';
+                else if (trimmedLine === 'PROJECTS') inSection = 'projects';
+                
+                // Check if this line starts with a bullet
+                const isBullet = trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*');
+                
+                if (isBullet) {
+                    // Save previous bullet if exists
+                    if (currentBullet) {
+                        formatted.push(currentBullet);
+                    }
+                    // Start new bullet
+                    currentBullet = trimmedLine;
+                } else if (currentBullet && (inSection === 'experience' || inSection === 'projects')) {
+                    // This is a continuation of the current bullet
+                    // Check if this line looks like it should be part of the bullet
+                    // (doesn't look like a company name, position, or section header)
+                    const looksLikeHeader = /^[A-Z][^,]*,\s*[A-Z]/.test(trimmedLine) || // Company, Location
+                                          /\d{4}\s*[-–]\s*\d{4}$/.test(trimmedLine) || // Date range at end
+                                          /^(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/.test(trimmedLine) || // Starts with date
+                                          /^[A-Z][A-Z\s]+$/.test(trimmedLine) || // All caps (section header)
+                                          trimmedLine === 'Northeastern University'; // Special case
+                    
+                    if (!looksLikeHeader) {
+                        // Append to current bullet with a space
+                        currentBullet += ' ' + trimmedLine;
+                        continue; // Don't add to formatted yet
+                    } else {
+                        // This looks like a new section/header, save current bullet
+                        formatted.push(currentBullet);
+                        currentBullet = null;
+                    }
+                } else if (currentBullet) {
+                    // We're in a different section or found a non-bullet line
+                    formatted.push(currentBullet);
+                    currentBullet = null;
+                }
+                
+                // If we didn't continue above, process the line normally
+                if (!currentBullet) {
+                    // Format based on section
+                    if (inSection === 'education' && i > 0) {
+                        // Check if this line contains a date at the end
+                        const dateMatch = trimmedLine.match(/(.*?)\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}$/i);
+                        if (dateMatch) {
+                            // Add double space before date
+                            trimmedLine = dateMatch[1].trim() + '  ' + dateMatch[2] + ' ' + trimmedLine.match(/\d{4}$/)[0];
+                        }
+                    } else if (inSection === 'experience' && i > 0) {
+                        // Check if this is a position line with dates
+                        const dateRangeMatch = trimmedLine.match(/(.*?)\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}\s*[-–]\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}$/i);
+                        if (dateRangeMatch) {
+                            const position = dateRangeMatch[1].trim();
+                            const dateRange = trimmedLine.substring(position.length).trim();
+                            trimmedLine = position + '  ' + dateRange;
+                        }
+                    } else if (inSection === 'projects' && i > 0) {
+                        // Check if this is a project title with dates
+                        const projectDateMatch = trimmedLine.match(/(.*?)\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}\s*[-–]\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}$/i);
+                        if (projectDateMatch) {
+                            const title = projectDateMatch[1].trim();
+                            const dateRange = trimmedLine.substring(title.length).trim();
+                            trimmedLine = title + '  ' + dateRange;
+                        }
+                    }
+                    
+                    formatted.push(trimmedLine);
+                }
+            }
+            
+            // Don't forget the last bullet if exists
+            if (currentBullet) {
+                formatted.push(currentBullet);
+            }
+            
+            return formatted.join('\n');
+        }
+        
+        // Auto-format resume for parser
+        function autoFormatResume() {
+            const editor = document.getElementById('resumeEditor');
+            const text = editor.value;
+            const formatted = autoFormatExtractedText(text);
+            editor.value = formatted;
+            
+            // Also merge multi-line bullets
+            mergeBulletPoints();
+            
+            showAlert('Resume auto-formatted and bullet points merged for parser compatibility!', 'success', 'edit');
+        }
+        
+        // Merge multi-line bullet points into single lines
+        function mergeBulletPoints() {
+            const editor = document.getElementById('resumeEditor');
+            let text = editor.value;
+            let lines = text.split('\n');
+            let merged = [];
+            let currentBullet = null;
+            let inBulletSection = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                let trimmedLine = line.trim();
+                
+                // Check if we're in a section that typically has bullets
+                if (trimmedLine === 'PROFESSIONAL EXPERIENCE' || trimmedLine === 'PROJECTS') {
+                    inBulletSection = true;
+                } else if (trimmedLine === 'EDUCATION' || trimmedLine === 'TECHNICAL SKILLS') {
+                    inBulletSection = false;
+                }
+                
+                // Check if this line starts with a bullet
+                const isBullet = trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*');
+                
+                if (isBullet) {
+                    // Save previous bullet if exists
+                    if (currentBullet) {
+                        merged.push(currentBullet);
+                    }
+                    // Start new bullet
+                    currentBullet = line; // Keep original indentation
+                } else if (currentBullet && inBulletSection && trimmedLine) {
+                    // Check if this looks like a continuation of the bullet
+                    const looksLikeNewSection = /^[A-Z][^,]*,\s*[A-Z]/.test(trimmedLine) || // Company, Location
+                                               /^\w+\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/.test(trimmedLine) || // Date pattern
+                                               /^[A-Z][A-Z\s]+$/.test(trimmedLine) || // All caps
+                                               trimmedLine === 'Northeastern University';
+                    
+                    if (!looksLikeNewSection) {
+                        // Merge with current bullet
+                        currentBullet = currentBullet.trimRight() + ' ' + trimmedLine;
+                        continue; // Don't add to merged yet
+                    } else {
+                        // This is a new section, save current bullet
+                        merged.push(currentBullet);
+                        currentBullet = null;
+                    }
+                } else if (currentBullet && !trimmedLine) {
+                    // Empty line might signal end of bullet
+                    merged.push(currentBullet);
+                    currentBullet = null;
+                } else if (currentBullet) {
+                    // Non-bullet, non-empty line - save bullet and continue
+                    merged.push(currentBullet);
+                    currentBullet = null;
+                }
+                
+                // Add the line if we didn't continue above
+                if (!currentBullet || !inBulletSection || !trimmedLine || isBullet) {
+                    if (!(currentBullet && isBullet)) { // Don't duplicate the bullet line
+                        merged.push(line);
+                    }
+                }
+            }
+            
+            // Don't forget the last bullet
+            if (currentBullet) {
+                merged.push(currentBullet);
+            }
+            
+            editor.value = merged.join('\n');
+            showAlert('Multi-line bullet points have been merged!', 'success', 'edit');
+        }
+        
+        // Fix date spacing throughout the document
+        function fixDateSpacing() {
+            const editor = document.getElementById('resumeEditor');
+            let text = editor.value;
+            
+            // Fix education dates
+            text = text.replace(/^(.*?)\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{4})$/gm, 
+                (match, prefix, month, year) => {
+                    return prefix.trim() + '  ' + month + ' ' + year;
+                });
+            
+            // Fix date ranges
+            text = text.replace(/^(.*?)\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+(\d{4})\s*[-–]\s*(.*?)$/gm,
+                (match, prefix, startMonth, startYear, rest) => {
+                    return prefix.trim() + '  ' + startMonth + ' ' + startYear + ' - ' + rest;
+                });
+            
+            editor.value = text;
+            showAlert('Date spacing fixed!', 'success', 'edit');
+        }
+        
+        // Validate format
+        function validateFormat() {
+            const editor = document.getElementById('resumeEditor');
+            const text = editor.value;
+            const issues = [];
+            
+            // Check for double spaces before dates
+            const datePattern = /\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/g;
+            let match;
+            while ((match = datePattern.exec(text)) !== null) {
+                const precedingText = text.substring(Math.max(0, match.index - 50), match.index);
+                if (!precedingText.endsWith('  ')) {
+                    issues.push(`Missing double space before date at: "...${precedingText.slice(-20)}${match[0]}"`);
+                }
+            }
+            
+            // Check for section headers
+            const requiredSections = ['EDUCATION', 'TECHNICAL SKILLS', 'PROFESSIONAL EXPERIENCE'];
+            requiredSections.forEach(section => {
+                if (!text.includes(section)) {
+                    issues.push(`Missing section: ${section}`);
                 }
             });
             
-            showAlert('Form cleared! Your saved information is still preserved.', 'success');
-            log('Form cleared');
+            if (issues.length === 0) {
+                showAlert('✅ Format validation passed! Your resume is properly formatted.', 'success', 'edit');
+            } else {
+                showAlert('⚠️ Format issues found:\n' + issues.join('\n'), 'error', 'edit');
+            }
+        }
+        
+        // Show format example
+        function showFormatExample() {
+            const example = `EDUCATION
+Northeastern University  December 2025
+Master of Science in Engineering Management
+Relevant Coursework: Course 1, Course 2, Course 3
+
+TECHNICAL SKILLS
+Programming Languages: Python, R, SQL
+Tools & Technologies: Tableau, Excel, MS Project
+Certifications: Six Sigma Green Belt
+
+PROFESSIONAL EXPERIENCE
+Company Name, City, State
+Job Title  Month Year - Month Year
+• Bullet point describing achievement
+• Another bullet point with impact
+
+PROJECTS
+Project Title  Month Year - Month Year
+Northeastern University
+• Project bullet point
+• Another project detail`;
+            
+            alert('Format Example (note the double spaces before dates!):\n\n' + example);
+        }
+        
+        // Editor toolbar functions
+        function addBullet() {
+            const editor = document.getElementById('resumeEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const text = editor.value;
+            
+            if (start === end) {
+                // No selection, add bullet at cursor
+                const before = text.substring(0, start);
+                const after = text.substring(start);
+                editor.value = before + '\n• ' + after;
+                editor.selectionStart = editor.selectionEnd = start + 3;
+            } else {
+                // Add bullet to selected text
+                const selectedText = text.substring(start, end);
+                const before = text.substring(0, start);
+                const after = text.substring(end);
+                editor.value = before + '• ' + selectedText + after;
+            }
+            editor.focus();
+        }
+        
+        function addSection() {
+            const editor = document.getElementById('resumeEditor');
+            const position = editor.selectionEnd;
+            const text = editor.value;
+            const before = text.substring(0, position);
+            const after = text.substring(position);
+            
+            const sectionTemplate = '\n\nSECTION TITLE\n';
+            editor.value = before + sectionTemplate + after;
+            
+            // Select "SECTION TITLE" for easy replacement
+            editor.selectionStart = position + 2;
+            editor.selectionEnd = position + 15;
+            editor.focus();
+        }
+        
+        function formatSelection(type) {
+            const editor = document.getElementById('resumeEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            
+            if (start !== end) {
+                const text = editor.value;
+                const selectedText = text.substring(start, end);
+                let formattedText = '';
+                
+                switch(type) {
+                    case 'upper':
+                        formattedText = selectedText.toUpperCase();
+                        break;
+                    case 'title':
+                        formattedText = selectedText.replace(/\w\S*/g, (txt) => 
+                            txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+                        );
+                        break;
+                }
+                
+                editor.value = text.substring(0, start) + formattedText + text.substring(end);
+                editor.selectionStart = start;
+                editor.selectionEnd = start + formattedText.length;
+                editor.focus();
+            }
+        }
+        
+        function insertDate() {
+            const editor = document.getElementById('resumeEditor');
+            const position = editor.selectionEnd;
+            const text = editor.value;
+            const before = text.substring(0, position);
+            const after = text.substring(position);
+            
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            const now = new Date();
+            const dateStr = months[now.getMonth()] + ' ' + now.getFullYear();
+            
+            editor.value = before + dateStr + after;
+            editor.selectionStart = editor.selectionEnd = position + dateStr.length;
+            editor.focus();
+        }
+        
+        function cleanFormatting() {
+            const editor = document.getElementById('resumeEditor');
+            let text = editor.value;
+            
+            // First, merge multi-line bullets
+            let lines = text.split('\n');
+            let cleaned = [];
+            let currentBullet = null;
+            let inBulletSection = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i];
+                let trimmedLine = line.trim();
+                
+                // Check sections
+                if (trimmedLine === 'PROFESSIONAL EXPERIENCE' || trimmedLine === 'PROJECTS') {
+                    inBulletSection = true;
+                } else if (trimmedLine === 'EDUCATION' || trimmedLine === 'TECHNICAL SKILLS') {
+                    inBulletSection = false;
+                }
+                
+                const isBullet = trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*');
+                
+                if (isBullet) {
+                    if (currentBullet) cleaned.push(currentBullet);
+                    currentBullet = line;
+                } else if (currentBullet && inBulletSection && trimmedLine) {
+                    const looksLikeNewSection = /^[A-Z][^,]*,\s*[A-Z]/.test(trimmedLine) ||
+                                               /^\w+\s+(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/.test(trimmedLine) ||
+                                               /^[A-Z][A-Z\s]+$/.test(trimmedLine) ||
+                                               trimmedLine === 'Northeastern University';
+                    
+                    if (!looksLikeNewSection) {
+                        currentBullet = currentBullet.trimRight() + ' ' + trimmedLine;
+                        continue;
+                    } else {
+                        cleaned.push(currentBullet);
+                        currentBullet = null;
+                    }
+                } else if (currentBullet) {
+                    cleaned.push(currentBullet);
+                    currentBullet = null;
+                }
+                
+                if (!currentBullet || !inBulletSection || !trimmedLine || isBullet) {
+                    if (!(currentBullet && isBullet)) {
+                        cleaned.push(line);
+                    }
+                }
+            }
+            
+            if (currentBullet) cleaned.push(currentBullet);
+            
+            text = cleaned.join('\n');
+            
+            // Clean common formatting issues
+            text = text
+                .replace(/\t/g, '    ')           // Convert tabs to spaces
+                .replace(/ {3,}/g, '  ')          // Reduce multiple spaces to double
+                .replace(/\n{4,}/g, '\n\n\n')     // Limit newlines
+                .replace(/[""]/g, '"')            // Normalize quotes
+                .replace(/['']/g, "'")            // Normalize apostrophes
+                .replace(/[–—]/g, '-')            // Normalize dashes
+                .replace(/…/g, '...')             // Normalize ellipsis
+                .replace(/Six Seven/g, 'Six')     // Fix common OCR error
+                .trim();
+            
+            editor.value = text;
+            showAlert('Formatting cleaned and bullets merged!', 'success', 'edit');
+        }
+        
+        // Generate final resume
+        async function generateFinalResume() {
+            const editedContent = document.getElementById('resumeEditor').value;
+            
+            if (!editedContent.trim()) {
+                showAlert('Please upload and edit a resume before generating', 'error', 'edit');
+                return;
+            }
+            
+            // Get user info from localStorage
+            const userInfo = {
+                name: localStorage.getItem('userName') || 'Your Name',
+                location: localStorage.getItem('userLocation') || 'City, State',
+                phone: localStorage.getItem('userPhone') || '(555) 123-4567',
+                email: localStorage.getItem('userEmail') || 'email@example.com',
+                linkedin: localStorage.getItem('userLinkedin') || 'linkedin.com/in/profile'
+            };
+            
+            document.getElementById('loading-edit').style.display = 'block';
+            hideAlert('edit');
+            
+            try {
+                const response = await fetch(EDIT_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        data: {
+                            resumeContent: editedContent,
+                            userInfo: userInfo
+                        }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const html = await response.text();
+                document.getElementById('loading-edit').style.display = 'none';
+                
+                // Open result in new window
+                const resultWindow = window.open('', '_blank');
+                if (resultWindow) {
+                    resultWindow.document.write(html);
+                    resultWindow.document.close();
+                    showAlert('Final resume generated successfully! Check the new window.', 'success', 'edit');
+                } else {
+                    showAlert('Pop-up blocked! Please allow pop-ups for this site.', 'error', 'edit');
+                }
+                
+            } catch (error) {
+                document.getElementById('loading-edit').style.display = 'none';
+                showAlert('Error: ' + error.message, 'error', 'edit');
+            }
+        }
+        
+        // Clear edit form
+        function clearEditForm() {
+            document.getElementById('resumeEditor').value = '';
+            document.getElementById('pdfFile').value = '';
+            document.getElementById('pdfUploadDiv').classList.remove('has-file');
+            document.getElementById('pdfLabel').textContent = '📁 Click to upload your tailored resume PDF';
+            document.getElementById('simpleEditor').style.display = 'none';
+            document.getElementById('formatInfo').style.display = 'none';
+            document.getElementById('formatHelpers').style.display = 'none';
+            document.getElementById('generateFinalBtn').style.display = 'none';
+            showAlert('Form cleared!', 'success', 'edit');
         }
         
         // Show alert
-        function showAlert(message, type) {
-            const alert = document.getElementById('alert');
+        function showAlert(message, type, page) {
+            const alertId = page === 'ai' ? 'alert-ai' : 'alert-edit';
+            const alert = document.getElementById(alertId);
             alert.textContent = message;
             alert.className = `alert alert-${type}`;
             alert.style.display = 'block';
             
             if (type === 'success') {
-                setTimeout(() => hideAlert(), 5000);
+                setTimeout(() => hideAlert(page), 5000);
             }
         }
         
         // Hide alert
-        function hideAlert() {
-            const alert = document.getElementById('alert');
+        function hideAlert(page) {
+            const alertId = page === 'ai' ? 'alert-ai' : 'alert-edit';
+            const alert = document.getElementById(alertId);
             alert.style.display = 'none';
         }
     </script>

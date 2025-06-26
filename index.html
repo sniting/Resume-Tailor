@@ -588,16 +588,13 @@
     </style>
 </head>
 <body>
-    <!-- Debug Toggle Button -->
     <button class="debug-toggle" onclick="toggleDebug()">🐛 Toggle Debug</button>
     
-    <!-- Debug Panel -->
     <div class="debug-panel" id="debugPanel">
         <h3>Debug Console</h3>
         <div id="debugLogs"></div>
     </div>
     
-    <!-- Data Inspector -->
     <div class="data-inspector" id="dataInspector">
         <h3>📊 Data Inspector</h3>
         <div class="data-section">
@@ -622,7 +619,6 @@
         </div>
     </div>
     
-    <!-- Page Navigation -->
     <div class="page-nav">
         <button class="nav-btn active" onclick="showPage('ai-page')">
             🤖 AI-Powered Resume
@@ -635,7 +631,6 @@
         </button>
     </div>
     
-    <!-- AI-Powered Page (Page 1) -->
     <div id="ai-page" class="page active">
         <div class="container">
             <div class="header">
@@ -645,7 +640,6 @@
             
             <div id="alert-ai" class="alert"></div>
             
-            <!-- Personal Information Section -->
             <div class="section">
                 <h2>
                     <span>👤</span>
@@ -663,7 +657,6 @@
                 <button class="btn btn-debug" onclick="analyzeResumeContent()">🔍 Analyze Resume Content</button>
             </div>
             
-            <!-- Resume Upload Section -->
             <div class="section">
                 <h2><span>📄</span> Your Master Resume</h2>
                 <div class="file-upload" id="fileUploadDiv">
@@ -676,14 +669,12 @@
                 <p class="help-text">Include all your education, experience, projects, and skills</p>
             </div>
             
-            <!-- Job Description Section -->
             <div class="section">
                 <h2><span>💼</span> Target Job Description</h2>
                 <textarea id="jobDescription" placeholder="Paste the complete job description here..." onchange="updateDataInspector()"></textarea>
                 <p class="help-text">Include all requirements, responsibilities, and qualifications</p>
             </div>
             
-            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="tailorResume()">
                     <span>🚀</span> Tailor My Resume
@@ -693,7 +684,6 @@
                 </button>
             </div>
             
-            <!-- Loading State -->
             <div class="loading" id="loading-ai">
                 <div class="spinner"></div>
                 <p class="loading-text">AI is tailoring your resume... This may take 30-60 seconds.</p>
@@ -701,7 +691,6 @@
         </div>
     </div>
     
-    <!-- Manual Entry Page (Page 2) - ENHANCED! -->
     <div id="manual-page" class="page">
         <div class="container">
             <div class="header">
@@ -711,19 +700,16 @@
             
             <div id="alert-manual" class="alert"></div>
             
-            <!-- Important Notice -->
             <div class="important-notice">
                 <h4>⚠️ Important: This page is completely independent!</h4>
                 <p>All information entered here is stored separately and will ONLY use what you enter on this page for resume generation.</p>
             </div>
             
-            <!-- Progress Bar -->
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
             <div class="progress-text" id="progressText">0% Complete</div>
             
-            <!-- Personal Information Section (Manual Entry Specific) -->
             <div class="entry-group">
                 <h3>👤 Your Information</h3>
                 <div class="info-grid">
@@ -735,7 +721,6 @@
                 </div>
             </div>
             
-            <!-- Education Section -->
             <div class="entry-group">
                 <h3>🎓 Education</h3>
                 <div class="info-grid">
@@ -752,48 +737,39 @@
                 </div>
             </div>
             
-            <!-- Technical Skills Section -->
             <div class="entry-group">
                 <h3>💻 Technical Skills</h3>
                 <p class="help-text" style="margin-bottom: 15px;">Add skill categories and items. ONLY the skills you enter here will be included.</p>
                 <div id="skillsContainer">
-                    <!-- Skills will be added dynamically -->
-                </div>
+                    </div>
                 <button class="add-btn" onclick="addSkillCategory()">+ Add Skill Category</button>
             </div>
             
-            <!-- Certifications Section -->
             <div class="entry-group">
                 <h3>🏆 Certifications</h3>
                 <textarea id="certifications" placeholder="Enter certifications (one per line)" onchange="saveManualData()" style="min-height: 100px;"></textarea>
             </div>
             
-            <!-- Professional Experience Section -->
             <div class="entry-group">
                 <h3>💼 Professional Experience</h3>
                 <div id="experiencesContainer">
-                    <!-- Experiences will be added dynamically -->
-                </div>
+                    </div>
                 <button class="add-btn" onclick="addExperience()">+ Add Experience</button>
             </div>
             
-            <!-- Projects Section -->
             <div class="entry-group">
                 <h3>🚀 Projects</h3>
                 <div id="projectsContainer">
-                    <!-- Projects will be added dynamically -->
-                </div>
+                    </div>
                 <button class="add-btn" onclick="addProject()">+ Add Project</button>
             </div>
             
-            <!-- Job Description Section -->
             <div class="section">
                 <h2><span>💼</span> Target Job Description</h2>
                 <textarea id="manualJobDescription" placeholder="Paste the complete job description here..." onchange="saveManualData()"></textarea>
                 <p class="help-text">Include all requirements, responsibilities, and qualifications</p>
             </div>
             
-            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="generateFromManual()">
                     <span>🚀</span> Generate Tailored Resume
@@ -809,7 +785,6 @@
                 </button>
             </div>
             
-            <!-- Loading State -->
             <div class="loading" id="loading-manual">
                 <div class="spinner"></div>
                 <p class="loading-text">AI is tailoring your resume... This may take 30-60 seconds.</p>
@@ -817,7 +792,6 @@
         </div>
     </div>
     
-    <!-- Edit & Finalize Page (Page 3) - Previously Page 2 -->
     <div id="edit-page" class="page">
         <div class="container">
             <div class="header">
@@ -827,7 +801,6 @@
             
             <div id="alert-edit" class="alert"></div>
             
-            <!-- PDF Upload Section -->
             <div class="section">
                 <h2><span>📋</span> Upload Tailored Resume</h2>
                 <div class="file-upload" id="pdfUploadDiv">
@@ -839,7 +812,6 @@
                 <p class="help-text">Upload the PDF generated from the AI-powered resume page</p>
             </div>
             
-            <!-- Format Information -->
             <div class="format-info" id="formatInfo" style="display: none;">
                 <h3>⚠️ CRITICAL: Format Requirements for Proper Parsing</h3>
                 <ul>
@@ -852,7 +824,6 @@
                 </ul>
             </div>
             
-            <!-- Format Helper Buttons -->
             <div id="formatHelpers" style="display: none;">
                 <div class="section">
                     <h2><span>🔧</span> Quick Format Helpers</h2>
@@ -866,12 +837,10 @@
                 </div>
             </div>
             
-            <!-- Enhanced Editor Section -->
             <div id="simpleEditor" style="display: none;">
                 <div class="section">
                     <h2><span>✏️</span> Edit Resume Content</h2>
                     
-                    <!-- Editor Toolbar -->
                     <div class="editor-toolbar">
                         <button class="toolbar-btn" onclick="addBullet()">• Add Bullet</button>
                         <button class="toolbar-btn" onclick="addSection()">+ Add Section</button>
@@ -881,7 +850,6 @@
                         <button class="toolbar-btn" onclick="cleanFormatting()">🧹 Clean Format</button>
                     </div>
                     
-                    <!-- Main Editor -->
                     <textarea id="resumeEditor" 
                               placeholder="Your resume content will appear here exactly as it is in the PDF..."
                               spellcheck="true"></textarea>
@@ -892,7 +860,6 @@
                 </div>
             </div>
             
-            <!-- Action Buttons -->
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="generateFinalResume()" style="display: none;" id="generateFinalBtn">
                     <span>📄</span> Generate Final Resume
@@ -902,7 +869,6 @@
                 </button>
             </div>
             
-            <!-- Loading State -->
             <div class="loading" id="loading-edit">
                 <div class="spinner"></div>
                 <p class="loading-text">Generating your final resume...</p>
@@ -910,9 +876,7 @@
         </div>
     </div>
     
-    <!-- Include PDF.js for PDF parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <!-- Mammoth.js for DOCX parsing -->
     <script src="https://cdn.jsdelivr.net/npm/mammoth@1.4.2/mammoth.browser.min.js"></script>
     
     <script>
@@ -1185,6 +1149,7 @@
                 const projectElements = document.querySelectorAll('#projectsContainer .dynamic-entry');
                 projectElements.forEach(proj => {
                     const title = proj.querySelector('.proj-title')?.value || '';
+                    const university = proj.querySelector('.proj-university')?.value || '';
                     const startDate = proj.querySelector('.proj-start-date')?.value || '';
                     const endDate = proj.querySelector('.proj-end-date')?.value || '';
                     const bullets = [];
@@ -1198,6 +1163,7 @@
                     if (title) {
                         manualResumeData.projects.push({
                             title,
+                            university: university || 'Northeastern University', // Default if not specified
                             dates: `${startDate} - ${endDate}`,
                             bullets
                         });
@@ -1629,7 +1595,7 @@
             resume += 'PROJECTS\n';
             manualResumeData.projects.forEach(proj => {
                 resume += `${proj.title}    ${proj.dates}\n`;
-                resume += 'Northeastern University\n';
+                resume += `${proj.university || 'Northeastern University'}\n`;
                 proj.bullets.forEach(bullet => {
                     resume += `• ${bullet}\n`;
                 });
@@ -1773,6 +1739,8 @@
                 <button class="remove-btn" onclick="removeEntry(this)">Remove</button>
                 <input type="text" class="proj-title" placeholder="Project Title" 
                        value="${data ? data.title : ''}" onchange="saveManualData()" style="margin-bottom: 10px;">
+                <input type="text" class="proj-university" placeholder="University/Company Name (e.g., Northeastern University)" 
+                       value="${data ? (data.university || '') : ''}" onchange="saveManualData()" style="margin-bottom: 10px;">
                 <div class="date-inputs">
                     <input type="text" class="proj-start-date" placeholder="Start Date (e.g., January 2024)" 
                            value="${dates[0]}" onchange="saveManualData()">

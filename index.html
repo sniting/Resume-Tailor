@@ -611,6 +611,12 @@
             <div>Length: <span class="data-count" id="jdLength">0</span> characters</div>
         </div>
         <div class="data-section">
+            <h4>Manual Entry Status</h4>
+            <div>Experiences: <span class="data-count" id="manualExpCount">0</span></div>
+            <div>Projects: <span class="data-count" id="manualProjCount">0</span></div>
+            <div>Skills: <span class="data-count" id="manualSkillCount">0</span></div>
+        </div>
+        <div class="data-section">
             <h4>Last Action</h4>
             <div id="lastAction">None</div>
         </div>
@@ -695,7 +701,7 @@
         </div>
     </div>
     
-    <!-- Manual Entry Page (Page 2) - NEW! -->
+    <!-- Manual Entry Page (Page 2) - ENHANCED! -->
     <div id="manual-page" class="page">
         <div class="container">
             <div class="header">
@@ -795,8 +801,8 @@
                 <button class="btn btn-save" onclick="saveManualData(true)">
                     <span>💾</span> Save All Data
                 </button>
-                <button class="btn btn-debug" onclick="fixDataStructure()">
-                    <span>🔧</span> Fix Data Structure
+                <button class="btn btn-debug" onclick="validateManualData()">
+                    <span>🔍</span> Validate Data
                 </button>
                 <button class="btn btn-secondary" onclick="clearManualData()">
                     <span>🗑️</span> Clear All Data
@@ -955,6 +961,7 @@
             loadUserInfo();
             loadManualData();
             updateProgress();
+            updateManualDataInspector();
             logDebug('Page loaded, user info and manual data loaded', 'info');
         });
         
@@ -1031,6 +1038,13 @@
             logDebug(`Data updated - Resume: ${resumeContent.length} chars, Projects: ${projects.length}`, 'info');
         }
         
+        // Update manual data inspector
+        function updateManualDataInspector() {
+            document.getElementById('manualExpCount').textContent = manualResumeData.experiences.length;
+            document.getElementById('manualProjCount').textContent = manualResumeData.projects.length;
+            document.getElementById('manualSkillCount').textContent = manualResumeData.skills.length;
+        }
+        
         // Extract projects from resume for debugging
         function extractProjectsFromResume(resumeContent) {
             const projects = [];
@@ -1055,7 +1069,7 @@
             return projects;
         }
         
-        // FIXED: Manual Entry Functions with proper structure validation
+        // ENHANCED MANUAL ENTRY FUNCTIONS
         function saveManualData(showAlert = false) {
             try {
                 // ENSURE the structure exists before trying to save
@@ -1199,16 +1213,16 @@
                 // Save to localStorage with a different key to keep it separate
                 localStorage.setItem('manualResumeData', JSON.stringify(manualResumeData));
                 
-                // Update progress
+                // Update progress and inspector
                 updateProgress();
+                updateManualDataInspector();
                 
                 if (showAlert) {
                     showAlertMessage('All data saved successfully!', 'success', 'manual');
                 }
                 
                 logDebug('Manual data saved successfully', 'info');
-                logDebug(`Skills saved: ${manualResumeData.skills.length} categories`, 'info');
-                logDebug(`Job description length: ${manualResumeData.jobDescription?.length || 0}`, 'info');
+                logDebug(`Experiences: ${manualResumeData.experiences.length}, Projects: ${manualResumeData.projects.length}, Skills: ${manualResumeData.skills.length}`, 'info');
                 
             } catch (error) {
                 console.error('Error saving manual data:', error);
@@ -1416,219 +1430,79 @@
             }
         }
         
-        // Add this function to fix corrupted data
-        function fixDataStructure() {
-            manualResumeData = {
-                userInfo: {
-                    name: document.getElementById('manualName')?.value || '',
-                    location: document.getElementById('manualLocation')?.value || '',
-                    phone: document.getElementById('manualPhone')?.value || '',
-                    email: document.getElementById('manualEmail')?.value || '',
-                    linkedin: document.getElementById('manualLinkedin')?.value || ''
-                },
-                education: {
-                    current: {
-                        university: document.getElementById('currentUniversity')?.value || '',
-                        degree: document.getElementById('currentDegree')?.value || '',
-                        graduation: document.getElementById('currentGraduation')?.value || '',
-                        coursework: document.getElementById('currentCoursework')?.value || ''
-                    },
-                    previous: {
-                        university: document.getElementById('previousUniversity')?.value || '',
-                        degree: document.getElementById('previousDegree')?.value || '',
-                        graduation: document.getElementById('previousGraduation')?.value || ''
-                    }
-                },
-                skills: [],
-                certifications: [],
-                experiences: [],
-                projects: [],
-                jobDescription: document.getElementById('manualJobDescription')?.value || ''
-            };
+        // VALIDATE MANUAL DATA BEFORE SUBMISSION
+        function validateManualData() {
+            const errors = [];
             
-            saveManualData(true);
-            logDebug('Data structure fixed and saved', 'info');
-        }
-        
-        function addSkillCategory(data = null) {
-            const container = document.getElementById('skillsContainer');
-            const div = document.createElement('div');
-            div.className = 'skill-category';
-            div.innerHTML = `
-                <input type="text" placeholder="Category (e.g., Programming Languages)" 
-                       class="skill-category-name" value="${data ? data.category : ''}" 
-                       onchange="saveManualData()">
-                <input type="text" placeholder="Skills (comma-separated, e.g., Python, R, SQL, Java)" 
-                       class="skill-items" value="${data ? data.items : ''}" 
-                       onchange="saveManualData()">
-                <button class="remove-btn" onclick="removeSkillCategory(this)" style="position: relative; margin-top: 5px;">Remove Category</button>
-            `;
-            container.appendChild(div);
-        }
-        
-        function removeSkillCategory(button) {
-            button.parentElement.remove();
-            saveManualData();
-        }
-        
-        function addExperience(data = null) {
-            const container = document.getElementById('experiencesContainer');
-            const div = document.createElement('div');
-            div.className = 'dynamic-entry';
-            
-            const dates = data && data.dates ? data.dates.split(' - ') : ['', ''];
-            
-            div.innerHTML = `
-                <button class="remove-btn" onclick="removeEntry(this)">Remove</button>
-                <div class="info-grid">
-                    <input type="text" class="exp-company" placeholder="Company Name" 
-                           value="${data ? data.company : ''}" onchange="saveManualData()">
-                    <input type="text" class="exp-location" placeholder="City, State/Country" 
-                           value="${data ? data.location : ''}" onchange="saveManualData()">
-                    <input type="text" class="exp-position" placeholder="Position/Title" 
-                           value="${data ? data.position : ''}" onchange="saveManualData()">
-                </div>
-                <div class="date-inputs">
-                    <input type="text" class="exp-start-date" placeholder="Start Date (e.g., July 2023)" 
-                           value="${dates[0]}" onchange="saveManualData()">
-                    <input type="text" class="exp-end-date" placeholder="End Date (e.g., August 2023 or Present)" 
-                           value="${dates[1] || ''}" onchange="saveManualData()">
-                </div>
-                <h4 style="margin-top: 10px;">Bullet Points</h4>
-                <div class="bullets-container"></div>
-                <button class="add-btn" onclick="addBulletToEntry(this)">+ Add Bullet</button>
-            `;
-            
-            container.appendChild(div);
-            
-            // Add existing bullets
-            if (data && data.bullets) {
-                data.bullets.forEach(bullet => {
-                    addBulletToEntry(div.querySelector('.add-btn'), bullet);
-                });
-            } else {
-                // Add one empty bullet by default
-                addBulletToEntry(div.querySelector('.add-btn'));
+            // Check personal info
+            if (!manualResumeData.userInfo.name) {
+                errors.push('Name is required');
             }
-        }
-        
-        function addProject(data = null) {
-            const container = document.getElementById('projectsContainer');
-            const div = document.createElement('div');
-            div.className = 'dynamic-entry';
-            
-            const dates = data && data.dates ? data.dates.split(' - ') : ['', ''];
-            
-            div.innerHTML = `
-                <button class="remove-btn" onclick="removeEntry(this)">Remove</button>
-                <input type="text" class="proj-title" placeholder="Project Title" 
-                       value="${data ? data.title : ''}" onchange="saveManualData()" style="margin-bottom: 10px;">
-                <div class="date-inputs">
-                    <input type="text" class="proj-start-date" placeholder="Start Date (e.g., January 2024)" 
-                           value="${dates[0]}" onchange="saveManualData()">
-                    <input type="text" class="proj-end-date" placeholder="End Date (e.g., March 2024)" 
-                           value="${dates[1] || ''}" onchange="saveManualData()">
-                </div>
-                <h4 style="margin-top: 10px;">Bullet Points</h4>
-                <div class="bullets-container"></div>
-                <button class="add-btn" onclick="addBulletToEntry(this)">+ Add Bullet</button>
-            `;
-            
-            container.appendChild(div);
-            
-            // Add existing bullets
-            if (data && data.bullets) {
-                data.bullets.forEach(bullet => {
-                    addBulletToEntry(div.querySelector('.add-btn'), bullet);
-                });
-            } else {
-                // Add one empty bullet by default
-                addBulletToEntry(div.querySelector('.add-btn'));
+            if (!manualResumeData.userInfo.email) {
+                errors.push('Email is required');
             }
-        }
-        
-        function addBulletToEntry(button, text = '') {
-            const container = button.parentElement.querySelector('.bullets-container');
-            const div = document.createElement('div');
-            div.className = 'bullet-entry';
-            div.innerHTML = `
-                <input type="text" class="bullet-input" 
-                       placeholder="Enter achievement/responsibility (25-40 words)" 
-                       value="${text}" onchange="saveManualData()">
-                <button class="remove-bullet" onclick="removeBullet(this)">Remove</button>
-            `;
-            container.appendChild(div);
-        }
-        
-        function removeEntry(button) {
-            button.parentElement.remove();
-            saveManualData();
-        }
-        
-        function removeBullet(button) {
-            button.parentElement.remove();
-            saveManualData();
-        }
-        
-        function updateProgress() {
-            let filledFields = 0;
-            let totalFields = 0;
             
-            // Check personal info fields
-            const personalFields = ['manualName', 'manualEmail'];
-            personalFields.forEach(field => {
-                totalFields++;
-                if (document.getElementById(field).value.trim()) filledFields++;
-            });
-            
-            // Check education fields
-            const educationFields = ['currentUniversity', 'currentDegree', 'currentGraduation'];
-            educationFields.forEach(field => {
-                totalFields++;
-                if (document.getElementById(field).value.trim()) filledFields++;
-            });
-            
-            // Check skills
-            totalFields++;
-            if (manualResumeData.skills.length > 0) filledFields++;
+            // Check education
+            if (!manualResumeData.education.current.university || !manualResumeData.education.current.degree) {
+                errors.push('Current education details are required');
+            }
             
             // Check experiences
-            totalFields++;
-            if (manualResumeData.experiences.length > 0) filledFields++;
+            if (manualResumeData.experiences.length === 0) {
+                errors.push('At least one professional experience is required');
+            } else {
+                manualResumeData.experiences.forEach((exp, idx) => {
+                    if (!exp.company || !exp.position) {
+                        errors.push(`Experience ${idx + 1} is missing company or position`);
+                    }
+                    if (exp.bullets.length === 0) {
+                        errors.push(`Experience ${idx + 1} needs at least one bullet point`);
+                    }
+                });
+            }
             
             // Check projects
-            totalFields++;
-            if (manualResumeData.projects.length > 0) filledFields++;
+            if (manualResumeData.projects.length === 0) {
+                errors.push('At least one project is recommended');
+            } else {
+                manualResumeData.projects.forEach((proj, idx) => {
+                    if (!proj.title) {
+                        errors.push(`Project ${idx + 1} is missing a title`);
+                    }
+                    if (proj.bullets.length === 0) {
+                        errors.push(`Project ${idx + 1} needs at least one bullet point`);
+                    }
+                });
+            }
             
-            const progress = Math.round((filledFields / totalFields) * 100);
-            document.getElementById('progressFill').style.width = progress + '%';
-            document.getElementById('progressText').textContent = progress + '% Complete';
+            // Check skills
+            if (manualResumeData.skills.length === 0) {
+                errors.push('At least one skill category is required');
+            }
+            
+            // Check job description
+            if (!manualResumeData.jobDescription) {
+                errors.push('Job description is required');
+            }
+            
+            if (errors.length > 0) {
+                showAlertMessage('Validation Errors:\n' + errors.join('\n'), 'error', 'manual');
+                logDebug('Validation failed: ' + errors.join(', '), 'error');
+                return false;
+            } else {
+                showAlertMessage('All data is valid and ready for submission!', 'success', 'manual');
+                logDebug('Validation passed', 'info');
+                return true;
+            }
         }
         
+        // ENHANCED generateFromManual function
         function generateFromManual() {
             // First, save any pending changes
             saveManualData();
             
-            // Validate required fields
-            if (!manualResumeData.userInfo.name || !manualResumeData.userInfo.email) {
-                showAlertMessage('Please fill in at least your name and email', 'error', 'manual');
-                return;
-            }
-            
-            if (!manualResumeData.education.current.university || 
-                !manualResumeData.education.current.degree) {
-                showAlertMessage('Please fill in at least your current education details', 'error', 'manual');
-                return;
-            }
-            
-            if (manualResumeData.experiences.length === 0) {
-                showAlertMessage('Please add at least one professional experience', 'error', 'manual');
-                return;
-            }
-            
-            const jobDescription = document.getElementById('manualJobDescription').value;
-            if (!jobDescription.trim()) {
-                showAlertMessage('Please provide the job description', 'error', 'manual');
+            // Validate the data
+            if (!validateManualData()) {
                 return;
             }
             
@@ -1658,14 +1532,20 @@
             document.getElementById('loading-manual').style.display = 'block';
             hideAlert('manual');
             
+            // CRITICAL: Pass both text format AND structured data
             const requestData = {
                 action: 'tailor_resume',
                 data: {
                     resumeContent: resumeContent,
-                    jobDescription: jobDescription,
+                    jobDescription: manualResumeData.jobDescription,
+                    isManualEntry: true, // CRITICAL FLAG
+                    manualData: manualResumeData, // PASS STRUCTURED DATA
                     ...userInfo
                 }
             };
+            
+            logDebug('Sending request with manual data flag', 'info');
+            logDebug(`Request includes ${manualResumeData.experiences.length} experiences and ${manualResumeData.projects.length} projects`, 'info');
             
             fetch(AI_WEBHOOK_URL, {
                 method: 'POST',
@@ -1813,9 +1693,171 @@
                 document.getElementById('projectsContainer').innerHTML = '';
                 
                 updateProgress();
+                updateManualDataInspector();
                 showAlertMessage('All data cleared!', 'success', 'manual');
                 logDebug('Manual data cleared', 'info');
             }
+        }
+        
+        // Dynamic form functions
+        function addSkillCategory(data = null) {
+            const container = document.getElementById('skillsContainer');
+            const div = document.createElement('div');
+            div.className = 'skill-category';
+            div.innerHTML = `
+                <input type="text" placeholder="Category (e.g., Programming Languages)" 
+                       class="skill-category-name" value="${data ? data.category : ''}" 
+                       onchange="saveManualData()">
+                <input type="text" placeholder="Skills (comma-separated, e.g., Python, R, SQL, Java)" 
+                       class="skill-items" value="${data ? data.items : ''}" 
+                       onchange="saveManualData()">
+                <button class="remove-btn" onclick="removeSkillCategory(this)" style="position: relative; margin-top: 5px;">Remove Category</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeSkillCategory(button) {
+            button.parentElement.remove();
+            saveManualData();
+        }
+        
+        function addExperience(data = null) {
+            const container = document.getElementById('experiencesContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-entry';
+            
+            const dates = data && data.dates ? data.dates.split(' - ') : ['', ''];
+            
+            div.innerHTML = `
+                <button class="remove-btn" onclick="removeEntry(this)">Remove</button>
+                <div class="info-grid">
+                    <input type="text" class="exp-company" placeholder="Company Name" 
+                           value="${data ? data.company : ''}" onchange="saveManualData()">
+                    <input type="text" class="exp-location" placeholder="City, State/Country" 
+                           value="${data ? data.location : ''}" onchange="saveManualData()">
+                    <input type="text" class="exp-position" placeholder="Position/Title" 
+                           value="${data ? data.position : ''}" onchange="saveManualData()">
+                </div>
+                <div class="date-inputs">
+                    <input type="text" class="exp-start-date" placeholder="Start Date (e.g., July 2023)" 
+                           value="${dates[0]}" onchange="saveManualData()">
+                    <input type="text" class="exp-end-date" placeholder="End Date (e.g., August 2023 or Present)" 
+                           value="${dates[1] || ''}" onchange="saveManualData()">
+                </div>
+                <h4 style="margin-top: 10px;">Bullet Points</h4>
+                <div class="bullets-container"></div>
+                <button class="add-btn" onclick="addBulletToEntry(this)">+ Add Bullet</button>
+            `;
+            
+            container.appendChild(div);
+            
+            // Add existing bullets
+            if (data && data.bullets) {
+                data.bullets.forEach(bullet => {
+                    addBulletToEntry(div.querySelector('.add-btn'), bullet);
+                });
+            } else {
+                // Add one empty bullet by default
+                addBulletToEntry(div.querySelector('.add-btn'));
+            }
+        }
+        
+        function addProject(data = null) {
+            const container = document.getElementById('projectsContainer');
+            const div = document.createElement('div');
+            div.className = 'dynamic-entry';
+            
+            const dates = data && data.dates ? data.dates.split(' - ') : ['', ''];
+            
+            div.innerHTML = `
+                <button class="remove-btn" onclick="removeEntry(this)">Remove</button>
+                <input type="text" class="proj-title" placeholder="Project Title" 
+                       value="${data ? data.title : ''}" onchange="saveManualData()" style="margin-bottom: 10px;">
+                <div class="date-inputs">
+                    <input type="text" class="proj-start-date" placeholder="Start Date (e.g., January 2024)" 
+                           value="${dates[0]}" onchange="saveManualData()">
+                    <input type="text" class="proj-end-date" placeholder="End Date (e.g., March 2024)" 
+                           value="${dates[1] || ''}" onchange="saveManualData()">
+                </div>
+                <h4 style="margin-top: 10px;">Bullet Points</h4>
+                <div class="bullets-container"></div>
+                <button class="add-btn" onclick="addBulletToEntry(this)">+ Add Bullet</button>
+            `;
+            
+            container.appendChild(div);
+            
+            // Add existing bullets
+            if (data && data.bullets) {
+                data.bullets.forEach(bullet => {
+                    addBulletToEntry(div.querySelector('.add-btn'), bullet);
+                });
+            } else {
+                // Add one empty bullet by default
+                addBulletToEntry(div.querySelector('.add-btn'));
+            }
+        }
+        
+        function addBulletToEntry(button, text = '') {
+            const container = button.parentElement.querySelector('.bullets-container');
+            const div = document.createElement('div');
+            div.className = 'bullet-entry';
+            div.innerHTML = `
+                <input type="text" class="bullet-input" 
+                       placeholder="Enter achievement/responsibility (25-40 words)" 
+                       value="${text}" onchange="saveManualData()">
+                <button class="remove-bullet" onclick="removeBullet(this)">Remove</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeEntry(button) {
+            button.parentElement.remove();
+            saveManualData();
+            updateManualDataInspector();
+        }
+        
+        function removeBullet(button) {
+            button.parentElement.remove();
+            saveManualData();
+        }
+        
+        function updateProgress() {
+            let filledFields = 0;
+            let totalFields = 0;
+            
+            // Check personal info fields
+            const personalFields = ['manualName', 'manualEmail'];
+            personalFields.forEach(field => {
+                totalFields++;
+                if (document.getElementById(field) && document.getElementById(field).value.trim()) filledFields++;
+            });
+            
+            // Check education fields
+            const educationFields = ['currentUniversity', 'currentDegree', 'currentGraduation'];
+            educationFields.forEach(field => {
+                totalFields++;
+                if (document.getElementById(field) && document.getElementById(field).value.trim()) filledFields++;
+            });
+            
+            // Check skills
+            totalFields++;
+            if (manualResumeData.skills.length > 0) filledFields++;
+            
+            // Check experiences
+            totalFields++;
+            if (manualResumeData.experiences.length > 0) filledFields++;
+            
+            // Check projects
+            totalFields++;
+            if (manualResumeData.projects.length > 0) filledFields++;
+            
+            // Check job description
+            totalFields++;
+            if (manualResumeData.jobDescription.trim()) filledFields++;
+            
+            const progress = Math.round((filledFields / totalFields) * 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = progress + '% Complete';
         }
         
         // Analyze resume content in detail
@@ -1931,7 +1973,7 @@
             const fields = ['userName', 'userLocation', 'userPhone', 'userEmail', 'userLinkedin'];
             fields.forEach(field => {
                 const value = localStorage.getItem(field);
-                if (value) {
+                if (value && document.getElementById(field)) {
                     document.getElementById(field).value = value;
                 }
             });
@@ -2017,6 +2059,7 @@
                 data: {
                     resumeContent: resumeContent,
                     jobDescription: jobDescription,
+                    isManualEntry: false, // AI page is NOT manual entry
                     ...userInfo
                 }
             };

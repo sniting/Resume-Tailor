@@ -1,18 +1,3 @@
-Of course\! As the world's best and smartest HTML creator, I understand the need for intuitive and flawless functionality, especially when it comes to refining a document like a resume. The issue you're facing is a classic problem where the structure of the data gets disrupted after manual deletion, leading to rendering issues in the final output.
-
-The fix is to intelligently clean up the residual empty lines left behind after you delete the text for a project or experience. This ensures the parser that generates the final document sees that the section is completely gone, allowing the content below it to move up seamlessly.
-
-I have upgraded your HTML file by adding a new, specific tool to the "Edit & Finalize" page. This addition is carefully integrated and will not disturb any of the existing processes.
-
-### Summary of the Upgrade:
-
-1.  **New "Clean Up" Button:** On the "Edit & Finalize" page, within the "Quick Format Helpers" section, I've added a new, prominent button: `🧹 Clean Up Deleted Sections`. This button is designed to be used after you manually delete the text of an entire experience or project.
-2.  **Smart Cleanup Function:** This new button triggers a JavaScript function that meticulously scans the resume text. It finds areas with excessive blank lines (which are left behind after you delete content) and collapses them, effectively removing the "ghost" entry.
-3.  **Seamless Integration:** This new tool is self-contained and only works when you click the button. It perfectly preserves all other functionalities, including the AI tailoring, manual entry, and the final generation process.
-
-Here is the complete, upgraded HTML file. You can be confident that this refined tool will now allow for the seamless deletion of entire sections, just as you envisioned.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -600,52 +585,6 @@ Here is the complete, upgraded HTML file. You can be confident that this refined
                 justify-content: center;
             }
         }
-        
-        /* NEW AND EXISTING STYLES FOR EDIT PAGE HELPERS */
-        .format-helpers {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .format-helper-btn {
-            flex-grow: 1;
-            padding: 10px 15px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            background-color: #f0f0f0;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            font-size: 0.9em;
-        }
-        .format-helper-btn:hover {
-            background-color: #e0e0e0;
-        }
-        .format-helper-btn.primary {
-            background-color: #d1ecf1;
-            border-color: #bee5eb;
-        }
-        .format-helper-btn.primary:hover {
-            background-color: #bce8f1;
-        }
-        .editor-toolbar {
-            margin-bottom: 10px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .toolbar-btn {
-            padding: 6px 12px;
-            border: 1px solid #ccc;
-            background: #fff;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .toolbar-btn:hover {
-            background: #f0f0f0;
-        }
-
     </style>
 </head>
 <body>
@@ -893,8 +832,8 @@ Here is the complete, upgraded HTML file. You can be confident that this refined
                         <button class="format-helper-btn primary" onclick="mergeBulletPoints()">🔗 Merge Multi-line Bullets</button>
                         <button class="format-helper-btn" onclick="fixDateSpacing()">📅 Fix Date Spacing</button>
                         <button class="format-helper-btn" onclick="validateFormat()">✅ Validate Format</button>
-                        <button class="format-helper-btn" onclick="cleanupEmptySections()" style="background-color: #dc3545; color: white;">🧹 Clean Up Deleted Sections</button>
                         <button class="format-helper-btn" onclick="showFormatExample()">📋 Show Format Example</button>
+                        <button class="format-helper-btn" onclick="smartCleanEmptySections()">🧹 Clean Empty Sections</button>
                     </div>
                 </div>
             </div>
@@ -914,7 +853,8 @@ Here is the complete, upgraded HTML file. You can be confident that this refined
                     
                     <textarea id="resumeEditor" 
                               placeholder="Your resume content will appear here exactly as it is in the PDF..."
-                              spellcheck="true"></textarea>
+                              spellcheck="true"
+                              oninput="autoDetectAndCleanEmptySections()"></textarea>
                     
                     <p class="help-text" style="margin-top: 10px;">
                         💡 <strong>Important:</strong> Click the red "Merge Multi-line Bullets" button above to fix broken bullet points! This ensures each bullet is on a single line as required by the parser.
@@ -2456,25 +2396,6 @@ Here is the complete, upgraded HTML file. You can be confident that this refined
             showAlert('Multi-line bullet points have been merged!', 'success', 'edit');
             logDebug('Bullet points merged', 'info');
         }
-
-        /**
-         * UPGRADE: New function to clean up empty spaces left after deleting an entry.
-         * This function collapses multiple consecutive blank lines into a single blank line,
-         * which prevents the parser from creating an empty block in the final resume.
-         */
-        function cleanupEmptySections() {
-            const editor = document.getElementById('resumeEditor');
-            let text = editor.value;
-
-            // This regex finds three or more consecutive newline characters (allowing for whitespace between them)
-            // and replaces them with exactly two newlines. This effectively removes the "hole" left
-            // by deleting an entry's text, while preserving the standard separation between valid entries.
-            const cleanedText = text.replace(/(\n\s*){3,}/g, '\n\n');
-
-            editor.value = cleanedText;
-            showAlert('Successfully cleaned up empty spaces from deleted entries!', 'success', 'edit');
-            logDebug('Ran cleanup for empty sections.', 'info');
-        }
         
         // Fix date spacing throughout the document
         function fixDateSpacing() {
@@ -2695,6 +2616,123 @@ Here is the complete, upgraded HTML file. You can be confident that this refined
             logDebug('Formatting cleaned', 'info');
         }
         
+        // NEW FUNCTION: Smart clean text - removes excessive empty lines while preserving structure
+        function smartCleanText(text) {
+            let lines = text.split('\n');
+            let cleaned = [];
+            let emptyLineCount = 0;
+            let lastLineWasSection = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmedLine = line.trim();
+                
+                // Check if this is a section header
+                const isSection = /^(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS)$/.test(trimmedLine);
+                
+                // Check if this line has content
+                if (trimmedLine.length > 0) {
+                    // If we had empty lines before, decide how many to keep
+                    if (emptyLineCount > 0) {
+                        if (lastLineWasSection) {
+                            // After section headers, keep just one empty line
+                            cleaned.push('');
+                        } else if (isSection) {
+                            // Before section headers, keep one empty line
+                            cleaned.push('');
+                        } else {
+                            // Between regular content, keep maximum one empty line
+                            cleaned.push('');
+                        }
+                    }
+                    
+                    // Add the current line
+                    cleaned.push(line);
+                    emptyLineCount = 0;
+                    lastLineWasSection = isSection;
+                } else {
+                    // This is an empty line
+                    emptyLineCount++;
+                    
+                    // Only keep empty lines if we haven't exceeded the limit
+                    if (emptyLineCount <= 2) {
+                        // Temporarily store it, we'll decide later if we keep it
+                        continue;
+                    }
+                }
+            }
+            
+            // Clean up the result - remove multiple consecutive empty lines
+            let finalCleaned = [];
+            let prevEmpty = false;
+            let prevWasSection = false;
+            
+            for (let i = 0; i < cleaned.length; i++) {
+                const line = cleaned[i];
+                const trimmedLine = line.trim();
+                const isEmpty = trimmedLine.length === 0;
+                const isSection = /^(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS)$/.test(trimmedLine);
+                
+                if (isEmpty) {
+                    // Skip if previous line was empty, unless previous was a section header
+                    if (!prevEmpty || prevWasSection) {
+                        finalCleaned.push(line);
+                    }
+                    prevEmpty = true;
+                } else {
+                    finalCleaned.push(line);
+                    prevEmpty = false;
+                }
+                
+                prevWasSection = isSection;
+            }
+            
+            // Final pass: ensure no more than 2 consecutive empty lines anywhere
+            let result = finalCleaned.join('\n');
+            result = result.replace(/\n{4,}/g, '\n\n\n'); // Replace 4+ newlines with 3
+            result = result.replace(/\n{3,}/g, '\n\n');   // Replace 3+ newlines with 2
+            
+            // Trim trailing whitespace
+            result = result.trimEnd();
+            
+            return result;
+        }
+
+        // Manual button function for smart cleaning
+        function smartCleanEmptySections() {
+            const editor = document.getElementById('resumeEditor');
+            const text = editor.value;
+            const cleanedText = smartCleanText(text);
+            
+            if (text !== cleanedText) {
+                editor.value = cleanedText;
+                showAlert('Empty sections cleaned successfully!', 'success', 'edit');
+                logDebug('Empty sections cleaned', 'info');
+            } else {
+                showAlert('No empty sections to clean!', 'info', 'edit');
+            }
+        }
+        
+        // Auto-detect and clean on input
+        function autoDetectAndCleanEmptySections() {
+            const editor = document.getElementById('resumeEditor');
+            const text = editor.value;
+
+            // Preserve cursor position
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+
+            const cleanedText = smartCleanText(text);
+
+            if (text !== cleanedText) {
+                const diff = text.length - cleanedText.length;
+                editor.value = cleanedText;
+                // Restore cursor position
+                editor.selectionStart = start - diff;
+                editor.selectionEnd = end - diff;
+            }
+        }
+
         // Generate final resume with debugging
         async function generateFinalResume() {
             const editedContent = document.getElementById('resumeEditor').value;
@@ -2832,4 +2870,3 @@ Here is the complete, upgraded HTML file. You can be confident that this refined
     </script>
 </body>
 </html>
-```

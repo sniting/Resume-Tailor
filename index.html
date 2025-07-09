@@ -2620,82 +2620,112 @@
         function smartCleanText(text) {
             let lines = text.split('\n');
             let cleaned = [];
-            let emptyLineCount = 0;
-            let lastLineWasSection = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                const trimmedLine = line.trim();
+                const nextLine = i < lines.length - 1 ? lines[i + 1].trim() : '';
+                const prevLine = i > 0 ? lines[i - 1].trim() : '';
+                
+                // Skip empty lines in these cases:
+                // 1. Empty line followed by a bullet (orphaned bullets)
+                if (!trimmedLine && nextLine && (nextLine.startsWith('•') || nextLine.startsWith('-') || nextLine.startsWith('*'))) {
+                    // Check if there's a proper header before this empty line
+                    let hasValidHeader = false;
+                    for (let j = i - 1; j >= 0; j--) {
+                        const checkLine = lines[j].trim();
+                        if (!checkLine) continue;
+                        
+                        // If we find a date pattern or known headers, it's valid
+                        if (/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/.test(checkLine) ||
+                            checkLine === 'Northeastern University' ||
+                            /^[A-Z][^,]*,\s*[A-Z]/.test(checkLine)) { // Company, Location pattern
+                            hasValidHeader = true;
+                            break;
+                        }
+                        
+                        // If we hit a section header without finding a valid header, skip this empty line
+                        if (/^(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS)$/.test(checkLine)) {
+                            break;
+                        }
+                    }
+                    
+                    if (!hasValidHeader) {
+                        continue; // Skip this empty line
+                    }
+                }
+                
+                // 2. Multiple consecutive empty lines - keep only one
+                if (!trimmedLine && prevLine === '') {
+                    continue; // Skip additional empty lines
+                }
+                
+                // 3. Empty line at the very beginning
+                if (!trimmedLine && cleaned.length === 0) {
+                    continue;
+                }
+                
+                // Add the line
+                cleaned.push(line);
+            }
+            
+            // Second pass: Remove any remaining excessive spacing
+            let result = cleaned.join('\n');
+            
+            // Replace 3 or more consecutive newlines with 2
+            result = result.replace(/\n{3,}/g, '\n\n');
+            
+            // Special handling for sections - ensure exactly one blank line before section headers
+            result = result.replace(/\n*(?=(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS))/g, '\n\n');
+            
+            // Remove trailing whitespace
+            result = result.trim();
+            
+            // Final pass to catch any orphaned content
+            lines = result.split('\n');
+            let finalCleaned = [];
             
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
                 const trimmedLine = line.trim();
                 
-                // Check if this is a section header
-                const isSection = /^(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS)$/.test(trimmedLine);
-                
-                // Check if this line has content
-                if (trimmedLine.length > 0) {
-                    // If we had empty lines before, decide how many to keep
-                    if (emptyLineCount > 0) {
-                        if (lastLineWasSection) {
-                            // After section headers, keep just one empty line
-                            cleaned.push('');
-                        } else if (isSection) {
-                            // Before section headers, keep one empty line
-                            cleaned.push('');
-                        } else {
-                            // Between regular content, keep maximum one empty line
-                            cleaned.push('');
+                // Check for orphaned bullets or university names
+                if (trimmedLine === 'Northeastern University' || 
+                    (trimmedLine.startsWith('•') && i > 0)) {
+                    
+                    // Look back to see if there's a proper title with date
+                    let hasTitle = false;
+                    for (let j = i - 1; j >= 0; j--) {
+                        const prevLine = lines[j].trim();
+                        if (!prevLine) continue;
+                        
+                        // Check for section headers - if we hit one, stop looking
+                        if (/^(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS)$/.test(prevLine)) {
+                            break;
+                        }
+                        
+                        // Check for a line with a date (indicating a proper title)
+                        if (/\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)\s+\d{4}/.test(prevLine)) {
+                            hasTitle = true;
+                            break;
                         }
                     }
                     
-                    // Add the current line
-                    cleaned.push(line);
-                    emptyLineCount = 0;
-                    lastLineWasSection = isSection;
-                } else {
-                    // This is an empty line
-                    emptyLineCount++;
+                    // Skip orphaned content
+                    if (!hasTitle && trimmedLine !== 'Northeastern University' && !trimmedLine.startsWith('•')) {
+                        continue;
+                    }
                     
-                    // Only keep empty lines if we haven't exceeded the limit
-                    if (emptyLineCount <= 2) {
-                        // Temporarily store it, we'll decide later if we keep it
+                    // For bullets specifically, skip if orphaned
+                    if (trimmedLine.startsWith('•') && !hasTitle) {
                         continue;
                     }
                 }
+                
+                finalCleaned.push(line);
             }
             
-            // Clean up the result - remove multiple consecutive empty lines
-            let finalCleaned = [];
-            let prevEmpty = false;
-            let prevWasSection = false;
-            
-            for (let i = 0; i < cleaned.length; i++) {
-                const line = cleaned[i];
-                const trimmedLine = line.trim();
-                const isEmpty = trimmedLine.length === 0;
-                const isSection = /^(EDUCATION|TECHNICAL SKILLS|PROFESSIONAL EXPERIENCE|PROJECTS)$/.test(trimmedLine);
-                
-                if (isEmpty) {
-                    // Skip if previous line was empty, unless previous was a section header
-                    if (!prevEmpty || prevWasSection) {
-                        finalCleaned.push(line);
-                    }
-                    prevEmpty = true;
-                } else {
-                    finalCleaned.push(line);
-                    prevEmpty = false;
-                }
-                
-                prevWasSection = isSection;
-            }
-            
-            // Final pass: ensure no more than 2 consecutive empty lines anywhere
-            let result = finalCleaned.join('\n');
-            result = result.replace(/\n{4,}/g, '\n\n\n'); // Replace 4+ newlines with 3
-            result = result.replace(/\n{3,}/g, '\n\n');   // Replace 3+ newlines with 2
-            
-            // Trim trailing whitespace
-            result = result.trimEnd();
-            
-            return result;
+            return finalCleaned.join('\n').trim();
         }
 
         // Manual button function for smart cleaning
@@ -2716,20 +2746,30 @@
         // Auto-detect and clean on input
         function autoDetectAndCleanEmptySections() {
             const editor = document.getElementById('resumeEditor');
-            const text = editor.value;
-
-            // Preserve cursor position
-            const start = editor.selectionStart;
-            const end = editor.selectionEnd;
-
-            const cleanedText = smartCleanText(text);
-
-            if (text !== cleanedText) {
-                const diff = text.length - cleanedText.length;
+            const currentPosition = editor.selectionStart;
+            const currentValue = editor.value;
+            
+            // Clean the text
+            const cleanedText = smartCleanText(currentValue);
+            
+            // Only update if text actually changed
+            if (currentValue !== cleanedText) {
+                // Calculate cursor adjustment
+                let newPosition = currentPosition;
+                
+                // If text before cursor got shorter, adjust position
+                const textBeforeCursor = currentValue.substring(0, currentPosition);
+                const cleanedTextBeforeCursor = smartCleanText(textBeforeCursor);
+                
+                if (cleanedTextBeforeCursor.length < textBeforeCursor.length) {
+                    newPosition = cleanedTextBeforeCursor.length;
+                }
+                
+                // Update editor
                 editor.value = cleanedText;
+                
                 // Restore cursor position
-                editor.selectionStart = start - diff;
-                editor.selectionEnd = end - diff;
+                editor.selectionStart = editor.selectionEnd = Math.max(0, Math.min(newPosition, cleanedText.length));
             }
         }
 
